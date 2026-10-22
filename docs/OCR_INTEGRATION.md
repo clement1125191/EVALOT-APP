@@ -2,7 +2,7 @@
 
 ## Current implementation
 
-DirectMarkingCamera.tsx uses browser getUserMedia, a canvas JPEG capture and authenticated multipart upload. It saves original pages per student. The correction worker passes the saved pages and marking references to the configured vision adapter, validates structured answers/marks, and produces a draft. This already supports an AI vision extraction path; a local CPU PaddleOCR extraction tool is now provided in `services/ocr` and verified on a generated printed page. It is not yet wired into the camera/correction API. ML Kit is not installed.
+DirectMarkingCamera.tsx uses browser getUserMedia, a canvas JPEG capture and authenticated multipart upload. It saves original pages per student. The correction worker passes the saved pages and marking references to the configured vision adapter, validates structured answers/marks, and produces a draft. This already supports an AI vision extraction path; a local CPU PaddleOCR extraction tool is now provided in `services/ocr` and verified on a generated printed page. It is now wired into saved student drafts through the optional `OCR_PYTHON` adapter; see `services/ocr/README.md`. ML Kit is not installed.
 
 The existing optional Python OpenCV processor checks/cleans document images. OpenCV handles image preparation, not handwriting transcription or marking. The new direct camera saves images directly; it does not currently invoke the separate capture-preview/cleanup endpoint. Do not describe automatic crop, continuous OCR, colour grouping or instant handwriting recognition as already delivered.
 
@@ -41,7 +41,7 @@ interface OcrAdapter {
 }
 ```
 
-This is a proposed interface, not an existing endpoint. Never invent confidence if the chosen engine does not expose calibrated values. Preserve the engine/model version and original file ID with every extraction.
+The implemented bridge returns validated source-file/page evidence; see `packages/contracts/src/ocr.ts`. This example explains the extraction/marking separation. Never invent confidence if the chosen engine does not expose calibrated values. Preserve the engine/model version and original file ID with every extraction.
 
 4. For open source, deploy a private Python container with pinned PaddleOCR/Paddle runtime and models. Implement an internal POST /extract receiving a bounded file and returning validated ExtractedPage objects. Restrict it to the backend network (or authenticate requests), cap image dimensions/pages, set timeouts, limit concurrency and avoid logging student content. Keep it separate from Vercel static hosting. A small CPU model can be benchmarked on the 8 GB laptop; larger handwriting/document models may need a stronger host. No GPU performance promise is made.
 5. In CorrectionService.processNext, load the student's saved files, call the OCR adapter in order, and map lines to question positions against the paper. Keep page/box evidence. Do not merge different students based only on a recognized name or registration.
@@ -68,3 +68,7 @@ For custom continuous scanning use CameraX + a native text recognizer; the Docum
 ## Local installation verification
 
 PaddleOCR 3.7.0 and PaddlePaddle 3.3.1 passed CPU runtime and dependency checks on Windows/Python 3.12. Three evidence-validation tests passed. The real-model smoke test recognized the generated registration number and answer text using PP-OCRv5 mobile detection and English recognition. This does not establish accuracy on student handwriting. See [local setup and commands](../services/ocr/README.md).
+
+## Integrated verification
+
+The live Node-to-Python bridge recognized both a generated image and PDF, preserving global page order, file IDs, normalized boxes and scan variants. API tests cover local-only drafts without marks, OCR-assisted grading, uncertain lines, provider failures, recapture audit history and ownership checks. Real student handwriting still requires a representative evaluation set.

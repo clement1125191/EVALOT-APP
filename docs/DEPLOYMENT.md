@@ -1,4 +1,4 @@
-﻿# Deploy Evalot: Vercel frontend + persistent API
+# Deploy Evalot: Vercel frontend + persistent API
 
 ## Architecture and what is included
 
@@ -99,3 +99,7 @@ Push application changes to main to trigger connected deployments. Run npm run b
 - Vercel limits: https://vercel.com/docs/limits
 - Render Node deployment: https://render.com/docs/deploy-node-express-app
 - Render persistent disks: https://render.com/docs/disks
+
+## Optional integrated local OCR on the backend host
+
+Set `OCR_PYTHON` only after installing `services/ocr/requirements.txt` in a Python 3.12 environment on the API host and pre-downloading/testing its CPU models. The laptop Python path does not exist on Render or Vercel. A Node-only deployment does not install Python automatically: use a backend image/runtime with Python and the required native libraries, then run the OCR smoke test there. Keep `PADDLE_PDX_CACHE_HOME` on persistent storage if desired, e.g. `/var/data/evalot/ocr-models`. Run migration 014 before starting the updated API. Keep one API worker on the small initial host. Vercel hosts the frontend and proxies requests; it does not run this CPU bridge. Leaving `OCR_PYTHON` unset retains existing vision/manual behavior.

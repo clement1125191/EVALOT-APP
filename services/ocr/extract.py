@@ -26,10 +26,18 @@ def normalize_result(result, width, height):
     return {'page': 1, 'lines': lines, 'warnings': ['OCR scores are engine scores, not calibrated grading confidence.'] + (['No readable text detected.'] if not lines else [])}
 
 
-def extract(path):
+def create_engine():
+    from paddleocr import PaddleOCR
+    return PaddleOCR(device='cpu', cpu_threads=2, enable_mkldnn=False,
+        text_detection_model_name='PP-OCRv5_mobile_det',
+        text_recognition_model_name='en_PP-OCRv5_mobile_rec',
+        use_doc_orientation_classify=False, use_doc_unwarping=False,
+        use_textline_orientation=False)
+
+
+def extract(path, engine=None):
     from PIL import Image, ImageOps
     import numpy as np
-    from paddleocr import PaddleOCR
     if path.stat().st_size > 10 * 1024 * 1024:
         raise ValueError('Image must be 10 MB or smaller.')
     with Image.open(path) as image:
@@ -39,11 +47,7 @@ def extract(path):
         image.thumbnail((2400, 2400))
         width, height = image.size
         pixels = np.asarray(image)[:, :, ::-1].copy()
-    engine = PaddleOCR(device='cpu', cpu_threads=2, enable_mkldnn=False,
-        text_detection_model_name='PP-OCRv5_mobile_det',
-        text_recognition_model_name='en_PP-OCRv5_mobile_rec',
-        use_doc_orientation_classify=False, use_doc_unwarping=False,
-        use_textline_orientation=False)
+    engine = engine or create_engine()
     results = list(engine.predict(pixels))
     if not results:
         raise RuntimeError('OCR returned no page result.')

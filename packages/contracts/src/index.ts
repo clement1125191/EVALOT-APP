@@ -56,3 +56,5 @@ export * from './teaching.js';
 export * from './material-library.js';
 
 export * from './guidelines.js';
+
+export * from './ocr.js';

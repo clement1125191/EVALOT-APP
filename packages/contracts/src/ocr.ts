@@ -1,0 +1,3 @@
+﻿import {z} from 'zod';
+export const ocrEvidenceSchema=z.object({engine:z.literal('PaddleOCR'),models:z.array(z.string().max(100)).min(1).max(4),pages:z.array(z.object({page:z.number().int().positive(),fileId:z.string().uuid(),filePage:z.number().int().positive(),variant:z.enum(['original','cleaned']),lines:z.array(z.object({text:z.string().max(10000),confidence:z.number().min(0).max(1),box:z.tuple([z.number().min(0).max(1),z.number().min(0).max(1),z.number().min(0).max(1),z.number().min(0).max(1)])}).strict()).max(2000),warnings:z.array(z.string().max(500)).max(20)}).strict()).min(1).max(50)}).strict();
+export type OcrEvidence=z.infer<typeof ocrEvidenceSchema>;

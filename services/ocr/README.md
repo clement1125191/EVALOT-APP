@@ -19,7 +19,13 @@ Test normalization without downloading models:
 python -m unittest discover -s services/ocr -p test_extract.py
 ```
 
-This installs a working local extraction tool. The React camera/Node correction worker still use their existing upload and vision-provider paths. Wiring OCR evidence into saved student drafts is a separate change; simply installing this dependency does not switch the correction engine or remove its AI provider requirement.
+The Node correction worker now invokes this bridge for saved student pages when `OCR_PYTHON` is set. Run `npm run db:migrate`, configure the absolute path to `.data/paddleocr-venv/Scripts/python.exe` in your private `.env`, and restart the API. The correction options endpoint reports `ocr: true` when configured.
+
+In Marking, capture the student's pages and choose **Extract text locally** from the student review screen. Without an AI provider, the camera finish button also queues local extraction. Page text, OCR scores and uncertain lines appear alongside originals. JPEG, PNG and PDF pages are supported by `bridge.py`; the standalone CLI remains image-only. One engine is reused for all pages in a student bundle, and temporary rendered pages are removed after extraction. Job timeout: 180 seconds; larger bundles may need splitting.
+
+OCR-only drafts have no suggested or final marks and do not guess identity or question assignments. Teachers map the displayed text to the question answers and enter marks. With a vision provider and consent, OCR evidence accompanies the original pages for draft grading. Evidence is saved and audited before grading, so a provider failure does not erase successful OCR. Recapture clears current OCR and preserves its earlier audit event.
+
+Migration 014 adds `ocr_evidence` and the internal `ocr_only` queue flag. Authenticated extraction endpoints: `POST /api/correction/sessions/:sid/students/:stid/extract` and `POST /api/correction/sessions/:sid/extract-all`, both with `{}`. Ownership, guide readiness, complete pages, queued/reviewed locks and publication review requirements still apply.
 
 References: https://github.com/PaddlePaddle/PaddleOCR and https://github.com/PaddlePaddle/PaddleOCR/blob/main/docs/version3.x/pipeline_usage/OCR.en.md
 
