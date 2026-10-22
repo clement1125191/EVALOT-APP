@@ -1,0 +1,13 @@
+import {it,expect,vi} from 'vitest';
+import type {CorrectionSession} from '@evalot/contracts';
+import {finishDirectCapture,openCaptureStream} from '../src/direct-capture-flow';
+import {CaptureModeChoice} from '../src/MarkingStart';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+const session=(ready=true)=>({id:'s',guide:{status:ready?'READY':'DRAFT'},students:[{id:'one',pagesComplete:false}],files:[{kind:'PAGE',studentId:'one'}]} as CorrectionSession);
+it('completes the final student before queuing the class',async()=>{const s=session(),request=vi.fn().mockResolvedValue(s);await finishDirectCapture(request,s,'one','CORRECT_CLASS',true);expect(request.mock.calls.map(c=>c[0])).toEqual(['/correction/sessions/s/students/one/complete','/correction/sessions/s','/correction/sessions/s/correct-all','/correction/sessions/s']);});
+it('saves a student boundary without creating an empty next student',async()=>{const s=session(),request=vi.fn().mockResolvedValue(s);expect(await finishDirectCapture(request,s,'one','NEXT',false)).toMatchObject({queued:false,needsGuide:false});expect(request.mock.calls).toHaveLength(2);expect(request.mock.calls[0][0]).toContain('/one/complete');});
+it('preserves scans and requests guide confirmation before grading',async()=>{const s=session(false),request=vi.fn().mockResolvedValue(s);expect(await finishDirectCapture(request,s,'one','CORRECT_STUDENT',true)).toMatchObject({needsGuide:true,queued:false});expect(request.mock.calls).toHaveLength(2);});
+it('does not send correction requests without consent or pages',async()=>{const request=vi.fn();await expect(finishDirectCapture(request,session(),'one','CORRECT_STUDENT',false)).rejects.toThrow('Approve');const s=session();s.files=[];await expect(finishDirectCapture(request,s,'one','NEXT',false)).rejects.toThrow('front page');expect(request).not.toHaveBeenCalled();});
+it('stops a camera permission response arriving after the camera closed',async()=>{const stop=vi.fn(),stream={getTracks:()=>[{stop}]} as unknown as MediaStream;const get=vi.fn().mockResolvedValue(stream);expect(await openCaptureStream(get,()=>true)).toBeNull();expect(stop).toHaveBeenCalledOnce();expect(get.mock.calls[0][0]).toMatchObject({audio:false,video:{facingMode:{ideal:'environment'}}});});
+it('offers direct camera actions for both modes',()=>{const html=renderToStaticMarkup(createElement(CaptureModeChoice,{mode:'INDIVIDUAL',onChange:()=>{},onSelect:()=>{}}));expect(html.match(/Open camera/g)).toHaveLength(2);expect(html).not.toContain('type="radio"');});

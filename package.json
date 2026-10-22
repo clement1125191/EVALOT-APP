@@ -1,0 +1,31 @@
+{
+  "name": "evalot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web \"npm run dev -w @evalot/api\" \"npm run dev -w @evalot/web\"",
+    "build": "npm run build -w @evalot/api && npm run build -w @evalot/web",
+    "test": "vitest run --maxWorkers=1 --no-file-parallelism",
+    "db:migrate": "npm run db:migrate -w @evalot/api",
+    "typecheck": "tsc --noEmit -p apps/api && tsc --noEmit -p apps/web",
+    "start:hosted": "node apps/api/dist/server.js",
+    "db:migrate:hosted": "tsx apps/api/src/migrate.ts",
+    "configure:vercel": "node scripts/configure-vercel.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11",
+    "concurrently": "^9.2.1",
+    "@electric-sql/pglite": "^0.3.14",
+    "supertest": "^7.1.4",
+    "@types/supertest": "^6.0.3"
+  }
+}

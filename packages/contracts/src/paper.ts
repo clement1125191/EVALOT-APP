@@ -1,0 +1,11 @@
+import {z} from 'zod';
+export const headerField=z.object({text:z.string().max(500),align:z.enum(['left','center','right']),bold:z.boolean()}).strict();
+export const paperFooterInput=z.object({text:z.string().max(300),align:z.enum(['left','center','right']),style:z.enum(['modern','classic','serif','handwritten','script','monospace','elegant','rounded']),color:z.string().regex(/^#[0-9a-fA-F]{6}$/),size:z.number().int().min(12).max(28),bold:z.boolean(),italic:z.boolean()}).strict();
+export const defaultFooter={text:'Good luck!',align:'center' as const,style:'elegant' as const,color:'#235640',size:18,bold:false,italic:true};
+const emptyField={text:'',align:'center' as const,bold:false};
+export const paperHeaderInput=z.object({faculty:headerField.default(emptyField),department:headerField.default(emptyField),academicYear:headerField.default(emptyField),term:headerField.default(emptyField),teacherName:headerField.default(emptyField),studentNumberLabel:z.enum(['Student number','Candidate number']).default('Student number'),school:headerField,title:headerField,module:headerField,className:headerField,date:headerField,duration:headerField,totalMarks:headerField,instructions:z.object({text:z.string().max(3000),align:z.enum(['left','center','right']),bold:z.boolean()}).strict(),studentName:z.boolean(),studentNumber:z.boolean(),logoId:z.string().uuid().nullable(),logoAlign:z.enum(['left','center','right']),footer:paperFooterInput.default(defaultFooter)}).strict();
+export type PaperHeader=z.infer<typeof paperHeaderInput>;
+export function defaultPaperHeader(a?:{title:string;subject:string;className:string;totalMarks:number}):PaperHeader{
+ const field=(text='',bold=false,align:'left'|'center'|'right'='center')=>({text,bold,align});
+ return {faculty:field(''),department:field(''),academicYear:field(''),term:field(''),teacherName:field(''),studentNumberLabel:'Student number',school:field('School name',true),title:field(a?.title??'Assessment',true),module:field(a?.subject??''),className:field(a?.className??''),date:field(''),duration:field(''),totalMarks:field(a?String(a.totalMarks):''),instructions:field('',false,'left'),studentName:true,studentNumber:true,logoId:null,logoAlign:'center',footer:{...defaultFooter}};
+}

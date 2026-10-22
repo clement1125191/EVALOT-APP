@@ -1,0 +1,3 @@
+CREATE TABLE library_logos(id uuid PRIMARY KEY,teacher_id uuid NOT NULL REFERENCES teachers(id),name text NOT NULL,bytes bytea NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE paper_headers(assessment_id uuid PRIMARY KEY REFERENCES assessments(id),header jsonb NOT NULL,revision integer NOT NULL DEFAULT 0,updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE library_items(id uuid PRIMARY KEY,teacher_id uuid NOT NULL REFERENCES teachers(id),name text NOT NULL,kind text NOT NULL CHECK(kind IN ('HEADER','PAPER')),snapshot jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());

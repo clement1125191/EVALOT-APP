@@ -1,0 +1,11 @@
+import {it,expect} from 'vitest';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {defaultPaperHeader,paperHeaderInput} from '@evalot/contracts';
+import {PaperPreview} from '../src/PaperLibrary';
+const header=defaultPaperHeader({title:'English CAT',subject:'English',className:'S3 A',totalMarks:10});
+const questions=[{position:1,type:'SHORT_ANSWER' as const,prompt:'Define a noun.',maxMarks:10,options:[],expectedAnswer:'A naming word.',rubric:[{label:'Accurate definition',maxMarks:10}]}];
+it('renders questions and footer without leaking marking answers into the student paper',()=>{const html=renderToStaticMarkup(createElement(PaperPreview,{header,questions}));expect(html).toContain('Define a noun.');expect(html).toContain('Good luck!');expect(html).not.toContain('A naming word.');expect(html).not.toContain('Accurate definition');});
+it('renders expected answers and rubric marks in the marking preview',()=>{const html=renderToStaticMarkup(createElement(PaperPreview,{header,questions,scheme:true}));expect(html).toContain('Marking scheme');expect(html).toContain('A naming word.');expect(html).toContain('Accurate definition');expect(html).toContain('10 marks');});
+it('accepts legacy saved headers and constrains safe footer styling',()=>{const {footer,...legacy}=header;expect(paperHeaderInput.parse(legacy).footer.text).toBe('Good luck!');expect(paperHeaderInput.safeParse({...header,footer:{...footer,color:'url(javascript:alert(1))'}}).success).toBe(false);expect(paperHeaderInput.safeParse({...header,footer:{...footer,style:'arbitrary'}}).success).toBe(false);expect(paperHeaderInput.safeParse({...header,footer:{...footer,size:1000}}).success).toBe(false);});
+it('renders custom text, colour, alignment and writing style',()=>{const html=renderToStaticMarkup(createElement(PaperPreview,{header:{...header,footer:{text:'Do your best!',align:'right',style:'monospace',color:'#112233',size:22,bold:true,italic:false}},questions}));expect(html).toContain('Do your best!');expect(html).toContain('text-align:right');expect(html).toContain('color:#112233');expect(html).toContain('Courier New');expect(html).toContain('font-size:22px');});

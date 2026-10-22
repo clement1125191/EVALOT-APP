@@ -1,0 +1,8 @@
+CREATE TABLE educator_profiles(teacher_id uuid PRIMARY KEY REFERENCES teachers(id),onboarding_completed boolean NOT NULL DEFAULT false,setup_step integer NOT NULL DEFAULT 0,revision integer NOT NULL DEFAULT 0,default_institution_id uuid,updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE educator_institutions(id uuid PRIMARY KEY,teacher_id uuid NOT NULL REFERENCES teachers(id),name text NOT NULL,logo_id uuid REFERENCES library_logos(id),faculty text NOT NULL DEFAULT '',department text NOT NULL DEFAULT '',template_type text NOT NULL DEFAULT 'CLEAN',header jsonb,active boolean NOT NULL DEFAULT true,UNIQUE(id,teacher_id));
+CREATE TABLE teaching_assignments(id uuid PRIMARY KEY,institution_id uuid NOT NULL REFERENCES educator_institutions(id),subject_name text NOT NULL,level_name text NOT NULL,active boolean NOT NULL DEFAULT true,UNIQUE(id,institution_id));
+CREATE TABLE educator_events(id uuid PRIMARY KEY,teacher_id uuid NOT NULL REFERENCES teachers(id),action text NOT NULL,payload jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TRIGGER educator_events_immutable BEFORE UPDATE OR DELETE ON educator_events FOR EACH ROW EXECUTE FUNCTION immutable_history();
+CREATE TABLE assessment_contexts(assessment_id uuid PRIMARY KEY REFERENCES assessments(id),teacher_id uuid NOT NULL REFERENCES teachers(id),institution_id uuid NOT NULL REFERENCES educator_institutions(id),assignment_id uuid NOT NULL REFERENCES teaching_assignments(id),specification jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+ALTER TABLE assessments DROP CONSTRAINT assessments_kind_check;
+ALTER TABLE assessments ADD CONSTRAINT assessments_kind_check CHECK(kind IN ('EXAM','ASSESSMENT','CAT','ASSIGNMENT','HOMEWORK','QUIZ','TEST','PRACTICE'));
