@@ -1,0 +1,46 @@
+FROM node:22-bookworm-slim AS node-runtime
+FROM python:3.12-slim-bookworm
+
+# Run the existing Node API and its private CPU OCR subprocess in one service.
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+ && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+ && sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+ && apt-get -o Acquire::Retries=3 -o APT::Update::Error-Mode=any update \
+ && apt-get install -y --no-install-recommends libgomp1 libglib2.0-0 libgl1 libsm6 libxext6 libxrender1 \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY services/ocr/requirements.txt /tmp/ocr-requirements.txt
+RUN python -m pip install --no-cache-dir -r /tmp/ocr-requirements.txt && python -m pip check
+
+COPY package.json package-lock.json .npmrc tsconfig.base.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/contracts/package.json packages/contracts/package.json
+RUN npm ci --include=dev
+COPY apps/api apps/api
+COPY packages/contracts packages/contracts
+COPY services/ocr services/ocr
+COPY scripts/start-hosted-ocr.sh scripts/start-hosted-ocr.sh
+RUN npm run build -w @evalot/api
+
+# Bake public model weights into the image, never credentials or student records.
+ENV PADDLE_PDX_CACHE_HOME=/opt/evalot-models \
+    PADDLE_HOME=/opt/evalot-models/paddle \
+    PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True \
+    PYTHONIOENCODING=utf-8 \
+    PYTHONUNBUFFERED=1 \
+    OMP_NUM_THREADS=1
+RUN python -c "import sys; sys.path.insert(0, 'services/ocr'); from extract import create_engine; create_engine()"
+
+ENV NODE_ENV=production \
+    AUTH_MODE=password \
+    HOST=0.0.0.0 \
+    PORT=4000 \
+    OCR_PYTHON=/usr/local/bin/python \
+    UPLOAD_STORAGE_ROOT=/var/data/evalot/uploads
+RUN mkdir -p /app/.data/ocr-temp /var/data/evalot/uploads
+EXPOSE 4000
+CMD ["sh", "scripts/start-hosted-ocr.sh"]

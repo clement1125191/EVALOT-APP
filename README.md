@@ -65,3 +65,5 @@ Paper headers, logos, reusable templates and saved papers: see [docs/PAPER_LIBRA
 - [Camera, open-source OCR and ML Kit integration plan](docs/OCR_INTEGRATION.md)
 
 The committed API rewrite is a placeholder. Run `npm run configure:vercel -- https://YOUR-API.onrender.com` before expecting hosted login to work. Local `.env`, `.data` and credentials are intentionally excluded from Git.
+
+- [Hosted OCR container, teacher pilot and phone installation](docs/TEACHER_PILOT.md)
