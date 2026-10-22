@@ -1,0 +1,7 @@
+﻿import {it,expect,vi} from 'vitest';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {TeacherFeatureGrid} from '../src/TeacherFeatureGrid';
+import {DirectMarkingCamera} from '../src/DirectMarkingCamera';
+it('connects every homepage feature window to its workspace destination',()=>{const onSelect=vi.fn();const tree=TeacherFeatureGrid({busy:false,onSelect});const buttons=tree.props.children[1].props.children;expect(buttons).toHaveLength(11);for(const button of buttons)button.props.onClick();expect(onSelect.mock.calls.map(c=>c[0])).toEqual(['preparation','correction','publishing','teaching','materials','papers','headers','logos','guidelines','claims','settings']);});
+it('keeps photo capture available when live preview has not opened',()=>{const html=renderToStaticMarkup(createElement(DirectMarkingCamera,{session:{id:'test',mode:'INDIVIDUAL',guide:{className:'S3',subject:'Science'},students:[],files:[{kind:'QUESTION'},{kind:'GUIDE'}]} as any,setupBusy:false,setupError:'',vision:false,ocr:true,allowAI:false,onConsent:()=>{},onSession:()=>{},onReview:()=>{},onNeedGuide:()=>{}}));const shutter=html.match(/<button[^>]*class="direct-shutter"[^>]*>/)?.[0];expect(shutter).toBeDefined();expect(shutter).not.toContain('disabled');expect(html).toContain('Take photo');expect(html).toContain('capture="environment"');expect(html).toContain('Take student photo');});

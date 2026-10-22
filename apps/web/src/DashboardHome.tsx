@@ -1,11 +1,12 @@
-﻿import {useEffect,useState} from 'react';
+import {TeacherFeatureGrid,type FeatureDestination} from './TeacherFeatureGrid';
+import {useEffect,useState} from 'react';
 import type {Assessment,AssessmentDetail,EducatorProfile,PaperHeader,QuestionInput} from '@evalot/contracts';
 import {api} from './api';
 import {PaperPreview} from './PaperLibrary';
 import {PreparedPaperPreview} from './PreparedPaperPreview';
 type SavedItem={id:string;name:string;kind:'HEADER'|'PAPER';createdAt:string};
 type Snapshot={header:PaperHeader;questions?:QuestionInput[];assessment?:{title:string;subject:string;className:string;totalMarks:number;kind:string}};
-export function DashboardHome({items,loading,busy,onCreate,onOpen,onLibrary,onUsePaper}:{items:Assessment[];loading:boolean;busy:boolean;onCreate:(kind:'EXAM'|'ASSESSMENT'|'CAT'|'ASSIGNMENT'|'HOMEWORK'|'QUIZ'|'TEST'|'PRACTICE')=>void;onOpen:(id:string)=>void;onLibrary:(tab:'HEADER'|'PAPER')=>void;onUsePaper:(a:AssessmentDetail)=>void}){
+export function DashboardHome({items,loading,busy,onCreate,onOpen,onLibrary,onUsePaper,onFeature}:{onFeature:(feature:FeatureDestination)=>void;items:Assessment[];loading:boolean;busy:boolean;onCreate:(kind:'EXAM'|'ASSESSMENT'|'CAT'|'ASSIGNMENT'|'HOMEWORK'|'QUIZ'|'TEST'|'PRACTICE')=>void;onOpen:(id:string)=>void;onLibrary:(tab:'HEADER'|'PAPER')=>void;onUsePaper:(a:AssessmentDetail)=>void}){
  const [search,setSearch]=useState(''),[tab,setTab]=useState<'recent'|'past'>('recent'),[saved,setSaved]=useState<SavedItem[]>([]),[schoolTemplates,setSchoolTemplates]=useState<{item:SavedItem;snapshot:Snapshot}[]>([]),[error,setError]=useState(''),[working,setWorking]=useState(false),[preview,setPreview]=useState<AssessmentDetail|null>(null),[template,setTemplate]=useState<{item:SavedItem;snapshot:Snapshot}|null>(null);
  useEffect(()=>{let alive=true;void Promise.all([api<SavedItem[]>('/library/items'),api<EducatorProfile>('/teaching/profile')]).then(([rows,profile])=>{if(alive){setSaved(rows);setSchoolTemplates(profile.institutions.filter(i=>i.header).map(i=>({item:{id:i.id,name:i.name+' · '+i.templateType.toLowerCase(),kind:'HEADER',createdAt:''},snapshot:{header:i.header!}})));}}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false;};},[]);
  const sorted=[...items].sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt));
@@ -13,7 +14,7 @@ export function DashboardHome({items,loading,busy,onCreate,onOpen,onLibrary,onUs
  async function run(fn:()=>Promise<void>){setWorking(true);setError('');try{await fn();}catch(e){setError(e instanceof Error?e.message:'Could not open paper.');}finally{setWorking(false);}}
  const disabled=busy||working;
  return <div className="dashboard-home">
- <section className="dashboard-hero"><div><span className="eyebrow">YOUR TEACHING DESK</span><h2>Your next paper.<br/>Already a step ahead.</h2><p>Start with a template, revisit a past paper,<br/>or continue your latest draft.</p><button disabled={disabled} onClick={()=>onCreate('EXAM')}>+ Prepare a paper</button></div><div className="hero-paper" aria-hidden="true"><span>QUESTION PAPER</span><i/><i/><i/><div>Questions <b>✓</b></div><div>Marking scheme <b>✓</b></div></div></section>
+ <TeacherFeatureGrid busy={disabled} onSelect={onFeature}/>
  {error&&<p className="message error" role="alert">{error}</p>}
  <section className="dashboard-collection"><div className="section-title"><div><span className="eyebrow">A HEAD START</span><h2>Paper templates & saved papers</h2><p>Your reusable layouts and complete papers, close at hand.</p></div><button className="text-button" disabled={disabled} onClick={()=>onLibrary('PAPER')}>Open library →</button></div><div className="paper-template-grid">
  {schoolTemplates.slice(0,2).map(t=><button className="paper-template-card" disabled={disabled} key={t.item.id} onClick={()=>{setTemplate(t);setPreview(null);}}><div className="template-document" aria-hidden="true"><span>YOUR SETUP TEMPLATE</span><b>{t.snapshot.header.school.text}</b><i/><i/><i/></div><strong>{t.item.name}</strong><small>Preview your saved institution layout</small></button>)}

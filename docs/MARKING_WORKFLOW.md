@@ -1,4 +1,4 @@
-﻿# Marking workflow
+# Marking workflow
 
 The Marking screen follows: assessment and guide -> capture -> draft correction -> teacher review -> final review/export.
 
@@ -22,3 +22,5 @@ Validation for this update: both builds passed; 53 tests passed across six teach
 
 Direct camera capture: selecting One student or Whole class opens the lens immediately. The shutter saves each page directly. Next student closes the current bundle without creating an empty bundle; correction completes the current student's pages before queuing. Original scans remain available for teacher review.
 External papers may be captured before structured rules are confirmed. Both AI queueing and manual marking remain blocked until the guide is ready. Permission errors offer retry or upload; unavailable AI does not fabricate marks. Camera hardware and a live provider still need an end-to-end check on the teacher's device.
+
+Workspace clarity update: question paper and marking guide use compact + attachment menus with Upload files / Use saved Evalot paper and removable file chips. The student camera shows a labelled Take photo action; when live preview is unavailable it opens a native image input with capture=environment. Phone/browser permission and camera behavior still require on-device confirmation. Less-used workbook controls are collapsed. The homepage shows working feature windows for preparation, camera marking, publishing, classes, materials, saved papers, headers, logos, guidelines, claims and settings.
