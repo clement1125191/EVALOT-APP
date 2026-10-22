@@ -1,8 +1,8 @@
-﻿# Camera, OCR and handwriting integration
+# Camera, OCR and handwriting integration
 
 ## Current implementation
 
-DirectMarkingCamera.tsx uses browser getUserMedia, a canvas JPEG capture and authenticated multipart upload. It saves original pages per student. The correction worker passes the saved pages and marking references to the configured vision adapter, validates structured answers/marks, and produces a draft. This already supports an AI vision extraction path; a standalone PaddleOCR or ML Kit integration has NOT been installed.
+DirectMarkingCamera.tsx uses browser getUserMedia, a canvas JPEG capture and authenticated multipart upload. It saves original pages per student. The correction worker passes the saved pages and marking references to the configured vision adapter, validates structured answers/marks, and produces a draft. This already supports an AI vision extraction path; a local CPU PaddleOCR extraction tool is now provided in `services/ocr` and verified on a generated printed page. It is not yet wired into the camera/correction API. ML Kit is not installed.
 
 The existing optional Python OpenCV processor checks/cleans document images. OpenCV handles image preparation, not handwriting transcription or marking. The new direct camera saves images directly; it does not currently invoke the separate capture-preview/cleanup endpoint. Do not describe automatic crop, continuous OCR, colour grouping or instant handwriting recognition as already delivered.
 
@@ -64,3 +64,7 @@ For custom continuous scanning use CameraX + a native text recognizer; the Docum
 - Digital ink input distinction: https://developers.google.com/ml-kit/vision/digital-ink-recognition
 - ML Kit terms: https://developers.google.com/ml-kit/terms
 - Tesseract: https://github.com/tesseract-ocr/tesseract
+
+## Local installation verification
+
+PaddleOCR 3.7.0 and PaddlePaddle 3.3.1 passed CPU runtime and dependency checks on Windows/Python 3.12. Three evidence-validation tests passed. The real-model smoke test recognized the generated registration number and answer text using PP-OCRv5 mobile detection and English recognition. This does not establish accuracy on student handwriting. See [local setup and commands](../services/ocr/README.md).
