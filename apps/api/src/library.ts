@@ -6,9 +6,11 @@ import {z} from 'zod';
 import {paperHeaderInput,defaultPaperHeader,assessmentInput,questionSetInput} from '@evalot/contracts';
 import {Assessments,ApiError} from './assessments.js';
 import {transaction,type Store,type Database} from './db.js';
+import {sharedLogoRouter} from './shared-logos.js';
 const name=z.string().trim().min(1).max(100);
 export function libraryRouter(db:Store){
  const router=Router(),assessments=new Assessments(db);
+ router.use(sharedLogoRouter(db));
  async function logoCheck(tx:Database,owner:string,id:string|null){if(id && !(await tx.query('SELECT id FROM library_logos WHERE teacher_id=$1 AND id=$2',[owner,id])).rows.length)throw new ApiError(404,'Logo not found in your library.');}
  async function audit(tx:Database,owner:string,id:string,action:string,payload:unknown){await tx.query('INSERT INTO audit_events(id,assessment_id,teacher_id,action,payload) VALUES($1,$2,$3,$4,$5)',[randomUUID(),id,owner,action,JSON.stringify(payload)]);}
  router.get('/library/logos',async(_req,res)=>res.json((await db.query('SELECT id,name,created_at AS "createdAt" FROM library_logos WHERE teacher_id=$1 ORDER BY created_at DESC',[res.locals.teacher.id])).rows));
