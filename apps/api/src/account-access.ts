@@ -29,7 +29,7 @@ export function accountAccessRouter(db:Store,auth:Authentication,options:AccessO
     res.json({message:'If an account exists for that email, a reset link will arrive shortly. Check your spam folder too.'});
   });
   router.post('/reset-password',async(req,res)=>{
-    const input=z.object({token:z.string().regex(/^[a-f0-9]{64}$/),password:z.string().min(15).max(128)}).strict().parse(req.body);
+    const input=z.object({token:z.string().regex(/^[a-f0-9]{64}$/),password:z.string().min(6).max(128)}).strict().parse(req.body);
     await auth.limit(`reset-ip:${req.ip}`,10);const encoded=await hashPassword(input.password);
     await transaction(db,async tx=>{
       const row=(await tx.query('SELECT teacher_id FROM password_resets WHERE token_hash=$1 AND expires_at>now() FOR UPDATE',[hash(input.token)])).rows[0];

@@ -1,0 +1,11 @@
+﻿# Teacher profile, preparation and processing update
+
+Passwords now require at least six characters for registration and reset, consistently on the server and forms. Existing password hashes and sessions are unchanged.
+
+Preparation follows Class > Assessment details > Header preview > Start preparing. The preview starts with the school's saved header, offers alignment choices, and preserves the school logo, term, year, date and duration. Chat and Manual are separate modes. Chat has a compact + menu for notes, past papers, saved papers and library materials. AI preparation requires at least one material file and provider-sharing approval. Scanned past papers attached in Manual remain references; the teacher types/edits questions, while saved Evalot question sets are editable copies. No new provider key is supplied. An unconfigured AI chat explicitly offers Manual.
+
+Camera marking saves all pages for a student, then queues that student while keeping the camera open for the next. Review opens the saved student list; Pause & review saves/processes the current bundle first. The camera displays the last five students' actual queue/processing/review states. Names and registration numbers from confidently read, explicitly labelled fields on the first OCR page populate the draft, but always remain unconfirmed until teacher review. Conflicting, missing or unclear labels are not guessed. The threshold is an OCR engine score, not a calibrated probability of correct identity. Original images and OCR evidence remain available, including when AI grading fails.
+
+OCR alone extracts text and creates an unmarked review draft. A configured vision/marking provider compares responses with the question paper and guide to suggest marks; uncertain responses remain flagged. Student drafts update the existing draft marks sheet. Final publication still requires confirmed identity, resolved questions and teacher-approved marks.
+
+When queued work finishes, an in-app completion message appears. Browser notifications require the teacher to opt in and browser support. These notifications depend on the workspace staying open; closed-app push delivery is not implemented. The completed count refers to captured, processed papers, not an inferred entire class roster.

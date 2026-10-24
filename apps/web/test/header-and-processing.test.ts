@@ -1,0 +1,10 @@
+﻿import {it,expect} from 'vitest';
+import {defaultPaperHeader} from '@evalot/contracts';
+import {headerLayout} from '../src/PaperHeaderStart';
+import {processingSummary,studentProcessingLabel} from '../src/ProcessingStatus';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {createElement} from 'react';
+import {DirectMarkingCamera} from '../src/DirectMarkingCamera';
+it('changes header alignment without discarding the school, date, logo or term',()=>{const h=defaultPaperHeader();h.school.text='School A';h.date.text='2026-11-01';h.term.text='Term 3';h.logoId='logo';const next=headerLayout(h,'left',h);expect(next.logoAlign).toBe('left');expect(next.school.text).toBe('School A');expect(next.date.text).toBe(h.date.text);expect(next.term.text).toBe('Term 3');expect(next.logoId).toBe('logo');expect(headerLayout(next,'saved',h)).toEqual(h);});
+it('distinguishes OCR text processing, draft marking and failed jobs',()=>{expect(studentProcessingLabel({status:'PROCESSING',ocrOnly:true,ocrEvidence:{}} as any)).toBe('Extracting text');expect(studentProcessingLabel({status:'PROCESSING',ocrOnly:false,ocrEvidence:{}} as any)).toBe('Preparing draft marks');expect(processingSummary({students:[{status:'QUEUED'},{status:'REVIEW'},{status:'ERROR'}]} as any)).toEqual({pending:1,done:2,errors:1});});
+it('shows a processing list and pause/review without promising marks for OCR only',()=>{const html=renderToStaticMarkup(createElement(DirectMarkingCamera,{session:{id:'test',guide:{className:'S3',subject:'Science'},students:[{id:'s',name:'Alice',registration:'R1',status:'PROCESSING',ocrOnly:true,ocrEvidence:{}}],files:[{kind:'QUESTION'},{kind:'GUIDE'}]} as any,setupBusy:false,setupError:'',vision:false,ocr:true,allowAI:false,onConsent:()=>{},onSession:()=>{},onReview:()=>{},onNeedGuide:()=>{}}));expect(html).toContain('Alice');expect(html).toContain('Extracting text');expect(html).toContain('Pause &amp; review');expect(html).toContain('Process student text');expect(html).not.toContain('Process student &amp; mark');});

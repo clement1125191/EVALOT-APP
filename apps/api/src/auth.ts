@@ -8,7 +8,7 @@ import {accountAccessRouter,type AccessOptions} from './account-access.js';
 
 export interface Teacher {id:string;displayName:string;email:string;}
 const email=z.string().trim().toLowerCase().email().max(254);
-const password=z.string().min(15,'Use at least 15 characters for your password.').max(128);
+const password=z.string().min(6,'Use at least 6 characters for your password.').max(128);
 const credentials=z.object({email,password:z.string().min(1).max(128),remember:z.boolean().default(false)}).strict();
 const registration=z.object({displayName:z.string().trim().min(2).max(100),email,password,remember:z.boolean().default(false)}).strict();
 const cookieName='evalot_session';

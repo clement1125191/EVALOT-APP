@@ -1,6 +1,6 @@
 # Teacher login — Phase 1
 
-Open the app, choose **Create account**, enter your name and email, and choose a password of at least 15 characters. Confirm it and create your account. Your new workspace starts empty. On later visits use **Sign in**. The browser can restore an unexpired session without requiring another login. Use **Sign out** in the workspace when finished.
+Open the app, choose **Create account**, enter your name and email, and choose a password of at least 6 characters. Confirm it and create your account. Your new workspace starts empty. On later visits use **Sign in**. The browser can restore an unexpired session without requiring another login. Use **Sign out** in the workspace when finished.
 
 **Keep me signed in** is off by default. When selected, the cookie and server session last up to 30 days. Otherwise the cookie is limited to the browser session and the server session expires after 12 hours. Leave this option off on shared school devices. Passwords can contain spaces; no artificial uppercase/symbol rules are imposed. The Show/Hide control helps avoid typing errors.
 

@@ -1,9 +1,9 @@
-﻿import {useEffect,useState} from 'react';
+import {useEffect,useState} from 'react';
 import type {CSSProperties} from 'react';
-const presets=[['Blue','#165dcb'],['Navy blue','#123f85'],['Royal blue','#2149b8']] as const;
+const presets=[['Sky blue','#2479ac'],['Ocean blue','#20587b'],['Clear blue','#276d9f']] as const;
 export function useWorkspaceColour(teacherId:string){
  const key=`evalot:appearance:${teacherId}`;
- const [colour,setColour]=useState(()=>{try{const saved=localStorage.getItem(key);return presets.some(p=>p[1]===saved)?saved!:'#165dcb';}catch{return '#165dcb';}});
+ const [colour,setColour]=useState(()=>{try{const saved=localStorage.getItem(key);return presets.some(p=>p[1]===saved)?saved!:'#2479ac';}catch{return '#2479ac';}});
  useEffect(()=>{try{localStorage.setItem(key,colour);}catch{}},[key,colour]);
  return {colour,setColour,style:{'--workspace-accent':colour} as CSSProperties};
 }

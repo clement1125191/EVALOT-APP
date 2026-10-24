@@ -20,11 +20,12 @@ it('keeps recovery responses private and resets once while revoking sessions',as
   const unknown=await request(app).post('/api/auth/forgot-password').set(headers).send({email:'unknown@example.test'});
   expect(known.status).toBe(200);expect(unknown.body).toEqual(known.body);expect(mails).toHaveLength(1);expect(known.body).not.toHaveProperty('token');
   const token=new URL(mails[0].url).searchParams.get('reset');expect((await db.query<{token_hash:string}>('SELECT token_hash FROM password_resets')).rows[0].token_hash).not.toBe(token);
-  expect((await request(app).post('/api/auth/reset-password').set(headers).send({token,password:'my replacement test passphrase'})).status).toBe(200);
+  expect((await request(app).post('/api/auth/reset-password').set(headers).send({token,password:'short'})).status).toBe(422);
+  expect((await request(app).post('/api/auth/reset-password').set(headers).send({token,password:'six123'})).status).toBe(200);
   expect((await agent.get('/api/auth/me')).status).toBe(401);
   expect((await request(app).post('/api/auth/reset-password').set(headers).send({token,password})).status).toBe(400);
   expect((await request(app).post('/api/auth/login').set(headers).send({email:'reset@example.test',password})).status).toBe(401);
-  expect((await request(app).post('/api/auth/login').set(headers).send({email:'reset@example.test',password:'my replacement test passphrase'})).status).toBe(200);
+  expect((await request(app).post('/api/auth/login').set(headers).send({email:'reset@example.test',password:'six123'})).status).toBe(200);
   expect((await db.query("SELECT action FROM auth_events WHERE action='PASSWORD_RESET'")).rows).toHaveLength(1);
 },30000);
 it('rejects expired reset links',async()=>{

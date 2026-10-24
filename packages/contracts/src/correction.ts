@@ -5,7 +5,7 @@ export const visionOutput=z.object({name:z.string().max(160),registration:z.stri
 export type VisionOutput=z.infer<typeof visionOutput>;
 export interface DraftAnswer {position:number;text:string;confidence:number;pages:number[];suggestedMark:number|null;markConfidence:number;rationale:string;issue:string;teacherMark:number|null;resolved:boolean;}
 export interface CorrectionFile {id:string;kind:'QUESTION'|'GUIDE'|'PAGE';studentId:string|null;position:number;name:string;mimeType:string;pageCount:number;hasCleaned?:boolean;useCleaned?:boolean;}
-export interface CorrectionStudent {ocrEvidence?:import('./ocr.js').OcrEvidence|null;id:string;name:string;registration:string;identityConfidence:number;status:'CAPTURING'|'QUEUED'|'PROCESSING'|'REVIEW'|'REVIEWED'|'ERROR';revision:number;answers:DraftAnswer[];error:string;pagesComplete:boolean;identityConfirmed:boolean;reviewReason:string;}
+export interface CorrectionStudent {ocrOnly?:boolean;ocrEvidence?:import('./ocr.js').OcrEvidence|null;id:string;name:string;registration:string;identityConfidence:number;status:'CAPTURING'|'QUEUED'|'PROCESSING'|'REVIEW'|'REVIEWED'|'ERROR';revision:number;answers:DraftAnswer[];error:string;pagesComplete:boolean;identityConfirmed:boolean;reviewReason:string;}
 export interface MarksRow {studentId:string;name:string;registration:string;marks:number;maximum:number;answers:DraftAnswer[];}
 export interface MarksPublication {id:string;version:number;createdAt:string;rows:MarksRow[];}
 export interface CorrectionClaim {id:string;studentId:string;publicationId:string;reason:string;status:'OPEN'|'RESOLVED';resolution:string;createdAt:string;}

@@ -1,5 +1,5 @@
 /* School workspace: blue navigation, white pages, black text. */
-:root{--workspace-accent:#165dcb;color:#111;background:#fff;color-scheme:light}
+:root{--workspace-accent:#2479ac;color:#111;background:#fff;color-scheme:light}
 body{background:#fff;color:#111}
 .workspace.workspace-school{background:#fff!important;color:#111!important;min-height:100vh;display:flex}
 .workspace-school *, .teaching-shell *{text-shadow:none!important}
@@ -9,13 +9,13 @@ body{background:#fff;color:#111}
 .workspace-school :is(.panel,.dashboard-collection,.preparation-home,.preparation-home-title,.preparation-home-prompt,.preparation-selected-class,.preparation-class-chooser,.class-chooser-heading,.preparation-class-card,.prep-chat,.prep-message,.prep-chat-composer,.manual-workspace,.manual-notes-wrapper,.marking-start,.marking-assessment-card,.marking-document-picker,.attachment-field,.preparation-home-cards>button,.teaching-card,.teaching-customize,.prepared-paper-preview,.library-panel,.preparation-menu-panel,.active-preparation-setup){background:#fff!important;color:#111!important;border-color:#c4d6f4!important;box-shadow:none!important}
 .workspace-school :is(input,textarea,select),.teaching-shell :is(input,textarea,select){background:#fff!important;color:#111!important;border:1px solid #8da9d4!important;color-scheme:light}
 .workspace-school :is(input,textarea)::placeholder{color:#111;opacity:.6}
-.workspace-school :is(button,a):focus-visible,.teaching-shell :is(button,input,select,textarea):focus-visible{outline:3px solid #165dcb;outline-offset:3px}
-.workspace-school button,.teaching-shell button{background:var(--workspace-accent,#165dcb)!important;color:#fff!important;border:1px solid var(--workspace-accent,#165dcb);box-shadow:none!important}
+.workspace-school :is(button,a):focus-visible,.teaching-shell :is(button,input,select,textarea):focus-visible{outline:3px solid #2479ac;outline-offset:3px}
+.workspace-school button,.teaching-shell button{background:var(--workspace-accent,#2479ac)!important;color:#fff!important;border:1px solid var(--workspace-accent,#2479ac);box-shadow:none!important}
 .workspace-school button :is(span,strong,small),.teaching-shell button :is(span,strong,small){color:inherit!important}
 .workspace-school button:is(.secondary,.text-button,.assessment-row,.preparation-class-card,.marking-assessment-card),.teaching-shell button.secondary,.teaching-shell .text-button{background:#fff!important;color:#111!important;border-color:#8da9d4!important}
 .workspace-school :is(.badge,.work-kind,.workflow,.workflow .current,.message,.empty,.class-chooser-empty,.class-subject-hint,.preparation-flow,.teaching-pairs>div){background:#fff!important;color:#111!important;border-color:#8da9d4!important}
 .workspace-school .workspace-nav{display:flex!important;flex-direction:column!important;gap:6px!important;overflow:visible!important;margin-top:32px}
-.workspace-school>aside{position:fixed!important;left:0!important;top:0!important;width:232px!important;height:100dvh!important;z-index:70;background:var(--workspace-accent,#165dcb)!important;color:#fff!important;padding:30px 18px;display:flex!important;border:0!important;overflow-y:auto}
+.workspace-school>aside{position:fixed!important;left:0!important;top:0!important;width:232px!important;height:100dvh!important;z-index:70;background:var(--workspace-accent,#2479ac)!important;color:#fff!important;padding:30px 18px;display:flex!important;border:0!important;overflow-y:auto}
 .workspace-school aside :is(a,span,small,div,p){color:#fff!important}
 .workspace-school aside .nav{width:100%;margin:0;padding:13px;text-align:left;border-radius:8px;background:transparent!important;color:#fff!important;border:1px solid transparent}
 .workspace-school aside .nav.active{background:#fff!important;color:#111!important}
@@ -27,7 +27,7 @@ body{background:#fff;color:#111}
 .workspace-school>main{margin-left:232px;max-width:none;width:calc(100% - 232px);min-width:0;background:#fff!important;color:#111!important;padding:28px 38px}
 .workspace-school header{border-color:#c4d6f4!important;margin-bottom:28px}
 .workspace-school .heading h1{font-size:28px;color:#111!important}
-.workspace-school .eyebrow{color:#165dcb!important}
+.workspace-school .eyebrow{color:#2479ac!important}
 .workspace-school .mobile-workspace-nav,.sidebar-toggle,.sidebar-backdrop{display:none!important}
 .activity-overview{margin-bottom:28px}
 .activity-overview h2{font-size:24px;margin-bottom:8px}
@@ -40,8 +40,8 @@ body{background:#fff;color:#111}
 .teaching-shell{background:#fff!important;color:#111!important;min-height:100vh}
 .teaching-shell :is(.teaching-card,.teaching-customize,.teaching-template-grid>button,.teaching-pairs>div,.teaching-success){background:#fff!important;color:#111!important;border-color:#8da9d4!important;box-shadow:none!important}
 .teaching-shell :is(h1,h2,p,label,span,small,summary,.teaching-kicker){color:#111!important}
-.teaching-shell .teaching-brand{color:#165dcb!important}
-.teaching-shell .teaching-progress span.done{background:#165dcb!important}
+.teaching-shell .teaching-brand{color:#2479ac!important}
+.teaching-shell .teaching-progress span.done{background:#2479ac!important}
 .teaching-shell .teaching-progress span{background:#c4d6f4!important}
 .teaching-shell form{margin-top:24px}
 .teaching-shell form details{margin-bottom:20px}
@@ -53,8 +53,8 @@ body{background:#fff;color:#111}
 .workspace-school .class-chooser-heading h2 span{color:#111!important}
 .workspace-school .preparation-home-title h2{font-size:32px;color:#111!important}
 .workspace-school .preparation-page-home{background:#fff!important}
-.direct-marking-camera{color:#fff;--workspace-accent:#165dcb}
-.direct-marking-camera :is(.direct-correct,.direct-next-student,.direct-upload){background:#165dcb!important;color:#fff!important;border-color:#fff!important}
+.direct-marking-camera{color:#fff;--workspace-accent:#2479ac}
+.direct-marking-camera :is(.direct-correct,.direct-next-student,.direct-upload){background:#2479ac!important;color:#fff!important;border-color:#fff!important}
 .direct-marking-camera .direct-camera-frame{border-color:#fff!important}
 .direct-marking-camera .direct-camera-error{background:#111!important;color:#fff!important;border-color:#fff!important}
 .direct-marking-camera .direct-camera-finish{display:flex;flex-wrap:wrap;gap:8px}
@@ -70,6 +70,8 @@ body{background:#fff;color:#111}
  .workspace-school .form-grid{grid-template-columns:1fr}.workspace-school .section-title{flex-wrap:wrap}
 }
 @media print{.workspace-school>aside,.workspace-school .sidebar-toggle,.workspace-school .sidebar-backdrop{display:none!important}.workspace-school>main{margin:0;width:100%;padding:0}}
-.login-layout.login-layout{background:#fff;color:#111}.login-layout .login-story{background:#165dcb!important;color:#fff}.login-layout .login-story :is(h1,p,span,small,strong,footer,a){color:#fff!important}.login-layout :is(.story-card,.paper-stack){background:#fff!important;color:#111!important;border-color:#165dcb;box-shadow:none}.login-layout .story-card :is(p,strong,span,small,b){color:#111!important}.login-layout .paper-stack i{background:#165dcb}.login-layout .login-form-area{background:#fff}.login-layout .login-form-area :is(h2,p,label,span){color:#111!important}.login-layout .login-form-area button{background:#165dcb;color:#fff}.login-layout .login-form-area :is(input,select){background:#fff;color:#111;border-color:#8da9d4}.login-layout .login-tabs{background:#fff;border-color:#8da9d4}.login-layout .login-tabs button{background:#fff;color:#111}.login-layout .login-tabs button.active{background:#165dcb;color:#fff}.login-layout .login-google{background:#fff!important;color:#111!important;border-color:#8da9d4}.workspace-school .method-tabs,.workspace-school .preparation-mode-switch{background:#fff!important}.workspace-school .message.error{border-left:4px solid #165dcb!important}.workspace-school .prepared-preview-sheet{background:#fff!important}
+.login-layout.login-layout{background:#fff;color:#111}.login-layout .login-story{background:#2479ac!important;color:#fff}.login-layout .login-story :is(h1,p,span,small,strong,footer,a){color:#fff!important}.login-layout :is(.story-card,.paper-stack){background:#fff!important;color:#111!important;border-color:#2479ac;box-shadow:none}.login-layout .story-card :is(p,strong,span,small,b){color:#111!important}.login-layout .paper-stack i{background:#2479ac}.login-layout .login-form-area{background:#fff}.login-layout .login-form-area :is(h2,p,label,span){color:#111!important}.login-layout .login-form-area button{background:#2479ac;color:#fff}.login-layout .login-form-area :is(input,select){background:#fff;color:#111;border-color:#8da9d4}.login-layout .login-tabs{background:#fff;border-color:#8da9d4}.login-layout .login-tabs button{background:#fff;color:#111}.login-layout .login-tabs button.active{background:#2479ac;color:#fff}.login-layout .login-google{background:#fff!important;color:#111!important;border-color:#8da9d4}.workspace-school .method-tabs,.workspace-school .preparation-mode-switch{background:#fff!important}.workspace-school .message.error{border-left:4px solid #2479ac!important}.workspace-school .prepared-preview-sheet{background:#fff!important}
 
-.direct-marking-camera .direct-camera-frame i{border-color:#fff!important}.workspace-school .marking-journey,.workspace-school .marking-journey li,.workspace-school .marking-live-summary,.workspace-school .guide-workspace{background:#fff!important;color:#111!important;border-color:#8da9d4!important}.workspace-school .marking-journey li b{background:#165dcb!important;color:#fff!important}
+.direct-marking-camera .direct-camera-frame i{border-color:#fff!important}.workspace-school .marking-journey,.workspace-school .marking-journey li,.workspace-school .marking-live-summary,.workspace-school .guide-workspace{background:#fff!important;color:#111!important;border-color:#8da9d4!important}.workspace-school .marking-journey li b{background:#2479ac!important;color:#fff!important}
+
+.teaching-shell.teaching-shell{background:#f5fbff!important}.teaching-shell .teaching-card{border:1px solid #d2e9f7!important;border-radius:16px;padding:32px;max-width:960px}.teaching-shell h1{font-size:30px;letter-spacing:-.7px}.teaching-shell .teaching-card>p{max-width:640px;line-height:1.7}.workspace-school .prompt-only-composer{border:1px solid #cbdfea;border-radius:24px;padding:16px;background:#fff}.workspace-school .prompt-only-row textarea{border:0!important;box-shadow:none;min-height:76px;resize:vertical}.workspace-school .prep-chat-messages{max-width:850px;margin:auto}.workspace-school .prep-message{border:0!important;margin:18px 0;padding:12px 0;box-shadow:none}.workspace-school .prep-message.teacher{margin-left:20%;padding:14px 20px;background:#f1f8fc!important;border-radius:20px}.workspace-school .prep-message.assistant{margin-right:8%;background:#fff!important}.workspace-school .ai-prompt-workspace{max-width:950px;margin:auto}.workspace-school .prep-chat-top h2{font-size:26px}.workspace-school .prep-chat-top p{font-size:14px}.preparation-attachments-menu{position:absolute;z-index:45;bottom:calc(100% + 8px);left:0;min-width:235px;padding:8px;background:white;border:1px solid #cbdfea;border-radius:14px;box-shadow:0 8px 24px #11111112}.workspace-school .preparation-attachments-menu button{display:block;width:100%;text-align:left;background:#fff!important;color:#111!important;border:0;padding:12px}.workspace-school .preparation-attachments-menu button:hover{background:#f1f8fc!important}.header-start-preview{overflow:auto;max-height:620px;border:1px solid #cbdfea;border-radius:12px;margin:24px 0;padding:16px}.header-start-preview .a4-paper{margin:auto}.header-start-layouts{display:flex;gap:10px;flex-wrap:wrap}.header-start-layouts button[aria-pressed=true]{outline:2px solid #2479ac;outline-offset:3px}.camera-processing-list{background:#111c;color:#fff;padding:10px 14px;border-radius:12px;max-height:120px;overflow:auto;max-width:420px;margin:10px auto}.camera-processing-list div{display:flex;justify-content:space-between;gap:16px;font-size:12px;padding:4px 0}.marking-completion-toast{background:#fff!important;color:#111!important;border:1px solid #2479ac;border-radius:12px;padding:14px;margin:12px 0}.direct-marking-camera .marking-completion-toast{margin:8px 18px}.workspace-school .preparation-mode-switch,.workspace-school .preparation-mode-switch{display:flex;justify-content:center;gap:5px;padding:5px;border:1px solid #dbe9f1;border-radius:30px;max-width:290px;margin:0 auto 24px}.workspace-school .preparation-mode-switch button{flex:1;border-radius:24px}.workspace-school .preparation-mode-switch button:not(.active){background:#fff!important;color:#111!important;border-color:transparent}.header-start-actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}

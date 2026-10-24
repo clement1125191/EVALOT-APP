@@ -33,6 +33,7 @@ describe('Teacher authentication',()=>{
     const input=account();await register({...input,email:` ${input.email.toUpperCase()} `});
     expect((await request(app).post('/api/auth/register').set(writeHeader).send(input)).status).toBe(409);
     expect((await request(app).post('/api/auth/register').set(writeHeader).send({...account(),password:'short'})).status).toBe(422);
+    expect((await request(app).post('/api/auth/register').set(writeHeader).send({...account(),password:'six123'})).status).toBe(201);
   });
   it('uses the same invalid-credentials message for wrong password and unknown email',async()=>{
     const {input}=await register();
