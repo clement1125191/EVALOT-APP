@@ -1,0 +1,10 @@
+﻿# Simplified teacher workspace
+
+- Left sidebar on desktop; Menu opens the same sidebar on phones. Navigation uses white text on blue. Working pages use white backgrounds and black text. Appearance settings offer blue shades only; old non-blue preferences fall back to blue. Original logos and document content retain their source colours.
+- Home displays assessment totals, unfinished drafts and five recent papers. Preparation and marking are the two primary actions. The sidebar provides library, school/class setup, publishing, claims and settings.
+- School setup uses School name and shows matching shared-logo suggestions. Teachers explicitly choose Use this logo or continue without one. Changing to another school clears the previously selected logo. Optional uploads are still shared under the entered school name.
+- Enter a subject once and list its classes separated by commas, semicolons or new lines. Each class is stored as its own existing assignment, retaining school, department and trade boundaries. Duplicate subject/class entries are rejected. Individual rows can be edited or removed.
+- Prepare exam starts with class selection, then assessment details: subject, assessment type, title, date, term/semester, academic year, duration and marks. The school/class/subject context and header details are saved together by the teaching assessment endpoint. Existing clients that omit term/year retain the school's saved defaults. Questions can then be prepared manually or with the configured AI provider.
+- Camera marking has a single entry after selecting the question paper and marking guide. Capture all sides for a student, choose Save student & next, and continue. If OCR/AI is configured, extraction or correction can be queued for the current student while capturing the next. Existing batch records remain readable, but new camera sessions use the continuous individual workflow. Original scans, student boundaries, provider consent and teacher approval remain required.
+
+No new AI provider is enabled by this change. Camera permissions and actual handwriting accuracy still need real-device testing.

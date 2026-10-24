@@ -1,4 +1,4 @@
-﻿import {beforeAll,afterAll,it,expect} from 'vitest';
+import {beforeAll,afterAll,it,expect} from 'vitest';
 import {PGlite} from '@electric-sql/pglite';
 import {readFile,readdir} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
@@ -44,3 +44,18 @@ it('separates identical subject and class assignments by department and trade',a
 });
 it('lists complete marking papers only for the exact owned teaching class',async()=>{const make=async(assignmentId:string,title:string)=>{const paper=await request(app).post('/api/teaching/assessments').send({teachingAssignmentId:assignmentId,title,subject:'Mathematics',className:'S4',kind:'EXAM',totalMarks:20});expect(paper.status).toBe(201);const saved=await request(app).put('/api/assessments/'+paper.body.id+'/questions').send({revision:0,questions:[{position:1,type:'SHORT_ANSWER',prompt:'Find two plus two.',maxMarks:20,expectedAnswer:'Four',options:[],rubric:[]}]});expect(saved.status).toBe(200);return paper.body.id;};const ownPaper=await make(one.assignments[0].id,'School A Mathematics'),otherSchool=await make(two.assignments[1].id,'School B Mathematics');const result=await request(app).post('/api/teaching/marking-papers').send({assignmentIds:[one.assignments[0].id]});expect(result.status).toBe(200);expect(result.body.map((p:any)=>p.id)).toContain(ownPaper);expect(result.body.map((p:any)=>p.id)).not.toContain(otherSchool);expect(result.body.every((p:any)=>p.teachingAssignmentId===one.assignments[0].id&&p.questions.length>0)).toBe(true);expect((await request(foreign).post('/api/teaching/marking-papers').send({assignmentIds:[one.assignments[0].id]})).status).toBe(404);expect((await request(app).post('/api/teaching/marking-papers').send({assignmentIds:[]})).status).toBe(422);expect((await request(app).post('/api/correction/sessions').send({name:'Wrong school',assessmentId:otherSchool,teachingAssignmentId:one.assignments[0].id,usePreparedPaper:true,mode:'INDIVIDUAL'})).status).toBe(422);const marking=await request(app).post('/api/correction/sessions').send({name:'Correct school',assessmentId:ownPaper,teachingAssignmentId:one.assignments[0].id,usePreparedPaper:true,mode:'BATCH'});expect(marking.status).toBe(201);expect(marking.body.files.filter((f:any)=>f.kind==='QUESTION')).toHaveLength(1);expect(marking.body.files.filter((f:any)=>f.kind==='GUIDE')).toHaveLength(1);});
 it('preserves the chosen teaching class for an uploaded external marking paper',async()=>{const input={name:'Uploaded class marking',teachingAssignmentId:one.assignments[0].id,subject:'Mathematics',className:'S4',totalMarks:20,mode:'INDIVIDUAL'};const result=await request(app).post('/api/correction/sessions').send(input);expect(result.status).toBe(201);const context=(await db.query('SELECT assignment_id,specification FROM assessment_contexts WHERE assessment_id=$1',[result.body.assessmentId])).rows[0] as any;expect(context.assignment_id).toBe(one.assignments[0].id);expect(context.specification.institutionId).toBe(one.id);expect((await request(app).post('/api/correction/sessions').send({...input,subject:'English'})).status).toBe(422);expect((await request(foreign).post('/api/correction/sessions').send(input)).status).toBe(404);});
+
+it('stores exam date, term and academic year with the class paper snapshot',async()=>{
+ const response=await request(app).post('/api/teaching/assessments').send({teachingAssignmentId:one.assignments[0].id,title:'Term exam',subject:'Mathematics',className:'S4',kind:'EXAM',totalMarks:100,date:'2026-11-04',term:'Term 3',academicYear:'2026 / 2027',duration:'2 hours'});
+ expect(response.status).toBe(201);const header=(await request(app).get(`/api/assessments/${response.body.id}/header`)).body.header;
+ expect(header.date.text).toBe('2026-11-04');expect(header.term.text).toBe('Term 3');expect(header.academicYear.text).toBe('2026 / 2027');expect(header.duration.text).toBe('2 hours');
+ const row=(await db.query('SELECT specification FROM assessment_contexts WHERE assessment_id=$1',[response.body.id])).rows[0] as any;
+ expect(row.specification).toMatchObject({date:'2026-11-04',term:'Term 3',academicYear:'2026 / 2027'});
+});
+it('keeps saved school term and year when older clients omit those fields',async()=>{
+ const institutions=profile.institutions.map((i:Institution)=>i.id===one.id?{...i,header:{...i.header!,term:{...i.header!.term,text:'Term 2'},academicYear:{...i.header!.academicYear,text:'2027'}}}:i);
+ const saved=await save({...profile,institutions});expect(saved.status).toBe(200);profile=saved.body;
+ const created=await request(app).post('/api/teaching/assessments').send({teachingAssignmentId:one.assignments[0].id,title:'Revision',subject:'Mathematics',className:'S4',totalMarks:20});
+ expect(created.status).toBe(201);const h=(await request(app).get(`/api/assessments/${created.body.id}/header`)).body.header;
+ expect(h.term.text).toBe('Term 2');expect(h.academicYear.text).toBe('2027');
+});
