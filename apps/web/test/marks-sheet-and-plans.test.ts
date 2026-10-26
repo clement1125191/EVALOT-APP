@@ -1,0 +1,11 @@
+﻿import {it,expect} from 'vitest';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {createElement} from 'react';
+import {MarksSheet,displayedMarks,canPublishMarks} from '../src/MarksSheet';
+import {PlansBilling} from '../src/PlansBilling';
+const student={id:'s',name:'Alice',registration:'R1',status:'REVIEWED',identityConfirmed:true,answers:[{suggestedMark:3,teacherMark:4,resolved:true}]};
+const session={id:'workbook',name:'English marks',status:'OPEN',guide:{subject:'English',className:'S1',totalMarks:10},students:[student],claims:[]} as any;
+it('does not display missing suggested marks as zero',()=>{expect(displayedMarks({...student,status:'REVIEW',answers:[{suggestedMark:null}]} as any)).toBeNull();expect(displayedMarks(student as any)).toBe(4);});
+it('requires every answer, identity and open claim to be resolved before publication',()=>{expect(canPublishMarks(session)).toBe(true);expect(canPublishMarks({...session,students:[{...student,identityConfirmed:false}]})).toBe(false);expect(canPublishMarks({...session,claims:[{status:'OPEN'}]})).toBe(false);expect(canPublishMarks({...session,status:'PUBLISHED'})).toBe(false);});
+it('shows draft review, edited marks and an explicit publish action',()=>{const html=renderToStaticMarkup(createElement(MarksSheet,{session,busy:false,onOpen:()=>{},onPublish:()=>{},onCapture:()=>{}}));expect(html).toContain('Edited');expect(html).toContain('4 / 10');expect(html).toContain('Review / edit draft');expect(html).toContain('Publish marks');const published=renderToStaticMarkup(createElement(MarksSheet,{session:{...session,status:'PUBLISHED'},busy:false,onOpen:()=>{},onPublish:()=>{},onCapture:()=>{}}));expect(published).toContain('Published marks');expect(published).toContain('View draft');expect(published).not.toContain('Continue camera marking');});
+it('shows proposed payment plans without invented prices or checkout',()=>{const html=renderToStaticMarkup(createElement(PlansBilling));expect(html).toContain('Pricing to be confirmed');expect(html).toContain('Payments and automatic renewals are not enabled');expect(html).not.toContain('Buy now');});
