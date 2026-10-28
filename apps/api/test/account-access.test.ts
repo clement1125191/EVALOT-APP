@@ -12,7 +12,7 @@ const app=createApp(store,null,{auth:{publicUrl:'http://127.0.0.1:5174',sendRese
   return new Response(JSON.stringify({sub:'google-subject',email:profileEmail,email_verified:verified,name:'Google Teacher'}));
 }}});
 const headers={'X-Evalot-Request':'1'},password='a sufficiently long test passphrase';
-beforeAll(async()=>{for(const file of ['001_initial.sql','002_uploads.sql','003_teacher_auth.sql','004_account_recovery.sql','005_preparation.sql'])await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));},30000);
+beforeAll(async()=>{for(const file of ['001_initial.sql','002_uploads.sql','003_teacher_auth.sql','004_account_recovery.sql','005_preparation.sql'])await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/016_academic_marking.sql',import.meta.url),'utf8'));},30000);
 afterAll(async()=>{await db.close();});
 it('keeps recovery responses private and resets once while revoking sessions',async()=>{
   const agent=request.agent(app);await agent.post('/api/auth/register').set(headers).send({email:'reset@example.test',displayName:'Reset Teacher',password});

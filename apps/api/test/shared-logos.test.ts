@@ -11,7 +11,7 @@ const owner='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-822
 const app=createApp(store,owner),foreign=createApp(store,other);
 let privateId:string,sharedId:string;
 beforeAll(async()=>{
- for(const file of ['001_initial.sql','002_uploads.sql','003_teacher_auth.sql','004_account_recovery.sql','005_preparation.sql','006_teacher_library.sql','015_shared_institution_logos.sql'])await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));
+ for(const file of ['001_initial.sql','002_uploads.sql','003_teacher_auth.sql','004_account_recovery.sql','005_preparation.sql','006_teacher_library.sql','015_shared_institution_logos.sql'])await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/016_academic_marking.sql',import.meta.url),'utf8'));
  await db.query('INSERT INTO teachers(id,display_name) VALUES($1,$2),($3,$4)',[owner,'Teacher A',other,'Teacher B']);
  const png=await sharp({create:{width:30,height:30,channels:4,background:'#225544'}}).png().toBuffer();
  privateId=(await request(app).post('/api/library/logos').attach('file',png,'school.png')).body.id;

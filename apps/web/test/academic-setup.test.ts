@@ -1,0 +1,8 @@
+﻿import {it,expect} from 'vitest';
+import {academicOptions,markingSettingsInput} from '@evalot/contracts';
+import {parseStudentRoster} from '../src/student-roster';
+import {preparationClasses} from '../src/PreparationClasses';
+it('offers years for universities and levels for TVET, with term choices',()=>{expect(academicOptions('UNIVERSITY').levels).toContain('Year 2');expect(academicOptions('TVET').levels).toContain('Level 3');expect(academicOptions('PRIMARY').levels).toContain('Primary 6');expect(academicOptions('MASTERS').terms).toContain('Semester 1');});
+it('parses quoted CSV names and rejects duplicate registration numbers',()=>{expect(parseStudentRoster('Registration number,Student name\nR1,"Doe, Jane"')[0]).toEqual({registration:'R1',name:'Doe, Jane'});expect(()=>parseStudentRoster('Registration number,Student name\nR1,Alice\nR1,Bob')).toThrow();});
+it('does not merge university and masters classes with the same year label',()=>{const classes=preparationClasses([{id:'i',name:'Campus',logoId:null,faculty:'',department:'',templateType:'CLEAN',header:null,assignments:[{id:'a',educationLevel:'UNIVERSITY',subjectName:'Law',levelName:'Year 1'},{id:'b',educationLevel:'MASTERS',subjectName:'Law',levelName:'Year 1'}]}]);expect(classes).toHaveLength(2);});
+it('defaults to fair marking and prevents disabling uncertainty safeguards',()=>{expect(markingSettingsInput.parse({}).method).toBe('FAIR');expect(markingSettingsInput.safeParse({method:'CUSTOM',overrides:{'40':'DISALLOW'}}).success).toBe(false);expect(markingSettingsInput.safeParse({method:'CUSTOM',percentages:{'15':101}}).success).toBe(false);});

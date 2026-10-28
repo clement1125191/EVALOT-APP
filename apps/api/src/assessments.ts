@@ -3,7 +3,7 @@ import { readinessProblems, type Assessment, type AssessmentInput, type Assessme
 import { transaction, type Store, type Database } from './db.js';
 export class ApiError extends Error { constructor(public status: number, message: string) { super(message); } }
 const columns = `(SELECT count(*)::int FROM questions WHERE questions.assessment_id=assessments.id) AS "questionCount",id, kind, title, subject, class_name AS "className", total_marks AS "totalMarks", status, revision, created_at AS "createdAt"`;
-const qColumns = `id, position, type, prompt, max_marks AS "maxMarks", options, expected_answer AS "expectedAnswer", rubric`;
+const qColumns = `id, section, position, type, prompt, max_marks AS "maxMarks", options, expected_answer AS "expectedAnswer", rubric`;
 export class Assessments {
   constructor(private db: Store) {}
   async list(owner: string): Promise<Assessment[]> { return (await this.db.query(`SELECT ${columns} FROM assessments WHERE teacher_id=$1 ORDER BY created_at DESC`, [owner])).rows; }
@@ -30,7 +30,7 @@ export class Assessments {
       this.assertEditable(a, revision);
       if (questions.reduce((s, q) => s + q.maxMarks, 0) > a.totalMarks) throw new ApiError(422, 'Question marks exceed the assessment total.');
       await db.query('DELETE FROM questions WHERE assessment_id=$1', [id]);
-      for (const q of questions) await db.query('INSERT INTO questions(id,assessment_id,position,type,prompt,max_marks,options,expected_answer,rubric) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)', [randomUUID(), id, q.position, q.type, q.prompt, q.maxMarks, JSON.stringify(q.options), q.expectedAnswer, JSON.stringify(q.rubric)]);
+      for (const q of questions) await db.query('INSERT INTO questions(id,assessment_id,position,type,prompt,max_marks,options,expected_answer,rubric,section) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)', [randomUUID(), id, q.position, q.type, q.prompt, q.maxMarks, JSON.stringify(q.options), q.expectedAnswer, JSON.stringify(q.rubric),q.section||'Section A']);
       await db.query('UPDATE assessments SET revision=revision+1 WHERE id=$1', [id]);
       await this.audit(db, owner, id, 'QUESTIONS_REPLACED', {before: a.questions, after: questions, revision: revision + 1});
       return this.detail(owner, id, db);

@@ -1,9 +1,10 @@
-﻿import {z} from 'zod';
+import {educationLevelInput} from './academic.js';
+import {z} from 'zod';
 import {defaultPaperHeader,paperHeaderInput,type PaperHeader} from './paper.js';
 const name=z.string().trim().min(1).max(100);
-export const teachingAssignmentInput=z.object({id:z.string().uuid(),subjectName:name,levelName:name,departmentName:z.string().trim().max(100).optional(),tradeName:z.string().trim().max(100).optional()}).strict();
+export const teachingAssignmentInput=z.object({id:z.string().uuid(),educationLevel:educationLevelInput.optional(),subjectName:name,levelName:name,departmentName:z.string().trim().max(100).optional(),tradeName:z.string().trim().max(100).optional()}).strict();
 export const institutionInput=z.object({id:z.string().uuid(),name:name,logoId:z.string().uuid().nullable().default(null),faculty:z.string().trim().max(100).default(''),department:z.string().trim().max(100).default(''),assignments:z.array(teachingAssignmentInput).max(100),templateType:z.enum(['FORMAL','CLEAN','COMPACT']).default('CLEAN'),header:paperHeaderInput.nullable().default(null)}).strict();
-export const educatorProfileInput=z.object({revision:z.number().int().min(0),onboardingCompleted:z.boolean(),setupStep:z.number().int().min(0).max(5),defaultInstitutionId:z.string().uuid().nullable(),institutions:z.array(institutionInput).max(20)}).strict();
+export const educatorProfileInput=z.object({role:z.enum(['LECTURER','TEACHER']).optional(),revision:z.number().int().min(0),onboardingCompleted:z.boolean(),setupStep:z.number().int().min(0).max(5),defaultInstitutionId:z.string().uuid().nullable(),institutions:z.array(institutionInput).max(20)}).strict();
 export type Institution=z.infer<typeof institutionInput>;
 export type EducatorProfile=z.infer<typeof educatorProfileInput>;
 export function teachingHeader(institution:Pick<Institution,'name'|'logoId'|'faculty'|'department'|'templateType'>,assignment?:{subjectName:string;levelName:string;departmentName?:string;tradeName?:string}):PaperHeader{

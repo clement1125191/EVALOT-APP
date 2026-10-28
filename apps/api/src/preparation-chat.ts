@@ -3,7 +3,7 @@ import {assessmentInput} from '@evalot/contracts';
 import {geminiTransport} from './gemini.js';
 export const planOutput=z.object({reply:z.string().trim().min(1).max(4000),ready:z.boolean(),title:z.string().max(160),subject:z.string().max(100),className:z.string().max(100),kind:z.enum(['','EXAM','ASSESSMENT','CAT','ASSIGNMENT','HOMEWORK','QUIZ','TEST','PRACTICE']),totalMarks:z.number().int().min(0).max(1000),questionCount:z.number().int().min(0).max(30),duration:z.string().max(100).default(''),instructions:z.string().max(3000).default(''),coverage:z.string().max(3000)}).strict();
 export const chatInput=z.object({messages:z.array(z.object({role:z.enum(['user','assistant']),text:z.string().trim().min(1).max(5000)}).strict()).min(1).max(30),hasMaterials:z.boolean(),assessmentId:z.string().uuid().optional(),teachingAssignmentId:z.string().uuid().optional(),confirmedDetails:planOutput.optional()}).strict();
-export type ChatInput=z.input<typeof chatInput>&{paperContext?:{title:string;subject:string;className:string;kind:string;totalMarks:number;questionCount:number}};
+export type ChatInput=z.input<typeof chatInput>&{paperContext?:{educationLevel?:string;title:string;subject:string;className:string;kind:string;totalMarks:number;questionCount:number}};
 export type ChatPlan=z.input<typeof planOutput>;
 export function validatePlan(raw:unknown,hasMaterials:boolean,promoteReady=false):ChatPlan{
  const plan=planOutput.parse(raw);

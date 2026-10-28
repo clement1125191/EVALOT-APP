@@ -14,7 +14,7 @@ function account(){return {displayName:'Teacher Example',email:`teacher${++count
 async function register(input=account()){
   const agent=request.agent(app);const response=await agent.post('/api/auth/register').set(writeHeader).send(input);expect(response.status).toBe(201);return {agent,input,response};
 }
-beforeAll(async()=>{for(const file of ['001_initial.sql','002_uploads.sql','003_teacher_auth.sql','004_account_recovery.sql','005_preparation.sql'])await db.exec(await readFile(new URL(`../migrations/${file}`,import.meta.url),'utf8'));},30000);
+beforeAll(async()=>{for(const file of ['001_initial.sql','002_uploads.sql','003_teacher_auth.sql','004_account_recovery.sql','005_preparation.sql'])await db.exec(await readFile(new URL(`../migrations/${file}`,import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/016_academic_marking.sql',import.meta.url),'utf8'));},30000);
 afterAll(async()=>{await db.close();});
 describe('Teacher authentication',()=>{
   it('protects assessments and originals without a valid session',async()=>{

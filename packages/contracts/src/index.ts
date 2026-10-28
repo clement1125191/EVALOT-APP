@@ -9,6 +9,7 @@ export const assessmentInput = z.object({
 export const criterion = z.object({label: text.max(300), maxMarks: z.number().int().min(1).max(1000)}).strict();
 export const questionInput = z.object({
   position: z.number().int().min(1).max(200),
+  section: z.string().trim().min(1).max(80).optional(),
   type: z.enum(['MCQ', 'TRUE_FALSE', 'SHORT_ANSWER', 'ESSAY']),
   prompt: text, maxMarks: z.number().int().min(1).max(1000),
   options: z.array(text.max(1000)).max(8).default([]),
@@ -58,3 +59,6 @@ export * from './material-library.js';
 export * from './guidelines.js';
 
 export * from './ocr.js';
+
+export * from './academic.js';
+export * from './marking-policy.js';

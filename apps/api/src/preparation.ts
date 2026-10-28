@@ -12,9 +12,10 @@ import {Assessments,ApiError} from './assessments.js';
 import {transaction,type Store} from './db.js';
 import {validateFile} from './uploads/validation.js';
 export interface Material {id:string;originalName:string;mimeType:string;byteSize:number;createdAt:string;}
-export interface GenerationInput {assessment:AssessmentDetail;prompt:string;count:number;previousQuestions?:QuestionInput[];materials:(Material & {bytes:Buffer})[];guidelines?:GuidelineSource[];}
+export interface GenerationInput {academicContext?:Record<string,unknown>;assessment:AssessmentDetail;prompt:string;count:number;previousQuestions?:QuestionInput[];materials:(Material & {bytes:Buffer})[];guidelines?:GuidelineSource[];}
 export interface PreparationOptions {chat?:(input:ChatInput)=>Promise<ChatPlan>;generate?:(input:GenerationInput)=>Promise<{questions:QuestionInput[];model:string}>;}
 const cols='id,original_name AS "originalName",mime_type AS "mimeType",byte_size AS "byteSize",created_at AS "createdAt"';
+async function academicContext(db:Store,owner:string,assessmentId:string){if(!(await db.query("SELECT to_regclass('assessment_contexts') AS name")).rows[0]?.name)return undefined;const row=(await db.query('SELECT specification FROM assessment_contexts WHERE assessment_id=$1 AND teacher_id=$2',[assessmentId,owner])).rows[0];if(!row)return undefined;const s=row.specification;return {educationLevel:s.educationLevel,institutionName:s.institutionName,departmentName:s.departmentName,tradeName:s.tradeName,level:s.level};}
 export function preparationRouter(db:Store,options:PreparationOptions={}){
   const router=Router(),assessments=new Assessments(db);
   const parser=multer({storage:multer.memoryStorage(),limits:{fileSize:10*1024*1024,files:1,fields:0,parts:1}}).single('file');
@@ -23,7 +24,8 @@ export function preparationRouter(db:Store,options:PreparationOptions={}){
     const input=chatInput.parse(req.body);if(!options.chat)throw new ApiError(503,'The preparation chat is not configured. Manual preparation is available.');
     const existing=input.assessmentId?await assessments.detail(res.locals.teacher.id,input.assessmentId):null;
     const teaching=input.teachingAssignmentId?await ownedAssignment(db,res.locals.teacher.id,input.teachingAssignmentId):null;
-    const context=existing?{title:existing.title,subject:existing.subject,className:existing.className,kind:existing.kind??'ASSESSMENT',totalMarks:existing.totalMarks,questionCount:existing.questions.length}:teaching?{title:'',subject:teaching.subjectName,className:teaching.levelName,kind:'',totalMarks:0,questionCount:0}:undefined;
+    const academic=existing?await academicContext(db,res.locals.teacher.id,existing.id):undefined;
+    const context=existing?{educationLevel:academic?.educationLevel as string|undefined,title:existing.title,subject:existing.subject,className:existing.className,kind:existing.kind??'ASSESSMENT',totalMarks:existing.totalMarks,questionCount:existing.questions.length}:teaching?{educationLevel:teaching.educationLevel as string|undefined,title:'',subject:teaching.subjectName,className:teaching.levelName,kind:'',totalMarks:0,questionCount:0}:undefined;
     const bucket='preparation-chat:'+res.locals.teacher.id;
     const limit=(await db.query("INSERT INTO auth_rate_limits(bucket,attempts,expires_at) VALUES($1,1,now()+interval '15 minutes') ON CONFLICT(bucket) DO UPDATE SET attempts=CASE WHEN auth_rate_limits.expires_at<=now() THEN 1 ELSE auth_rate_limits.attempts+1 END,expires_at=CASE WHEN auth_rate_limits.expires_at<=now() THEN now()+interval '15 minutes' ELSE auth_rate_limits.expires_at END RETURNING attempts",[bucket])).rows[0];
     if(limit.attempts>40)throw new ApiError(429,'Please wait before sending more preparation messages.');
@@ -63,7 +65,7 @@ export function preparationRouter(db:Store,options:PreparationOptions={}){
     const bucket='generation:'+owner;
     const limit=(await db.query("INSERT INTO auth_rate_limits(bucket,attempts,expires_at) VALUES($1,1,now()+interval '15 minutes') ON CONFLICT(bucket) DO UPDATE SET attempts=CASE WHEN auth_rate_limits.expires_at<=now() THEN 1 ELSE auth_rate_limits.attempts+1 END,expires_at=CASE WHEN auth_rate_limits.expires_at<=now() THEN now()+interval '15 minutes' ELSE auth_rate_limits.expires_at END RETURNING attempts",[bucket])).rows[0];if(limit.attempts>5)throw new ApiError(429,'You can generate 5 drafts every 15 minutes.');
     const retrieval=await retrieveGuidelines(db,owner,a,input.prompt);
-    let output;try{output=await options.generate({assessment:a,prompt:input.prompt,count:input.count,previousQuestions:input.previousQuestions,materials,guidelines:retrieval.sources});}catch(error){throw new ApiError(502,error instanceof GeminiRequestError?error.message:'AI could not prepare this draft. Your saved questions are unchanged. Try again.');}
+    let output;try{output=await options.generate({academicContext:await academicContext(db,owner,a.id),assessment:a,prompt:input.prompt,count:input.count,previousQuestions:input.previousQuestions,materials,guidelines:retrieval.sources});}catch(error){throw new ApiError(502,error instanceof GeminiRequestError?error.message:'AI could not prepare this draft. Your saved questions are unchanged. Try again.');}
     let questions:QuestionInput[];try{questions=questionSetInput.parse({revision:input.revision,questions:output.questions}).questions;}catch{throw new ApiError(502,'The AI draft did not meet the marking rules. Try again.');}
     if(questions.length!==input.count || readinessProblems(a,questions).length)throw new ApiError(502,'The AI draft had incomplete answers, incorrect marks or an incompatible guideline format. Review the request and applicable guidelines, then try again.');
     const generationId=randomUUID();await transaction(db,async tx=>{
