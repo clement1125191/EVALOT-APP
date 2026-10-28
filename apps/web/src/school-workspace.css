@@ -89,3 +89,5 @@ body{background:#fff;color:#111}
 .marking-upload-grid .hint{order:4}
 
 .workspace-school .workspace-nav svg{width:19px;height:19px;vertical-align:middle;margin-right:6px;flex-shrink:0}
+
+.offline-activities{margin:20px 0;border:1px solid #b8d8f4}.offline-activity-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid #e7edf3}.offline-activity-row small{display:block;margin-top:5px}.device-passcode{margin-bottom:20px}.device-passcode form{max-width:440px}.device-passcode button{margin:8px 8px 8px 0}.passcode-unlock{display:flex!important;justify-content:center;align-items:center;min-height:100vh;background:#eff7ff}.passcode-unlock .login-form-area{width:min(100%,520px)}

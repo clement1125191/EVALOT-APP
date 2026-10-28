@@ -39,3 +39,21 @@ it('derives uploaded paper totals from confirmed guide marks instead of assuming
  const questions=[{position:1,section:'Section B',type:'SHORT_ANSWER',prompt:'State a principle',expectedAnswer:'A principle',maxMarks:7,options:[],rubric:[]}];
  const confirmed=await request(app).put(path+'/setup-guide').send({revision:current.revision,questions});expect(confirmed.status).toBe(200);expect(confirmed.body.guide.totalMarks).toBe(7);expect(confirmed.body.inferReferenceMarks).toBe(false);
 });
+
+it('replays interrupted student creation and page uploads without duplicate records',async()=>{
+ const created=await request(app).post('/api/correction/sessions').send({name:'Offline replay',mode:'INDIVIDUAL',inferReferenceMarks:true});const root='/api/correction/sessions/'+created.body.id,clientId=randomUUID(),uploadId=randomUUID();
+ for(const kind of ['question','guide'])await request(app).post(root+'/'+kind).attach('file',page,kind+'.png');
+ for(let i=0;i<2;i++){const response=await request(app).post(root+'/students').send({captureOnly:true,clientId});expect(response.status).toBe(201);expect(response.body.id).toBe(clientId);}
+ for(let i=0;i<2;i++)expect((await request(app).post(root+'/students/'+clientId+'/pages').set('X-Evalot-Upload-ID',uploadId).attach('file',page,'front.png')).status).toBe(201);
+ const saved=(await request(app).get(root)).body;expect(saved.students).toHaveLength(1);expect(saved.files.filter((f:any)=>f.kind==='PAGE')).toHaveLength(1);
+ const different=await sharp({create:{width:50,height:70,channels:3,background:'black'}}).png().toBuffer();expect((await request(app).post(root+'/students/'+clientId+'/pages').set('X-Evalot-Upload-ID',uploadId).attach('file',different,'front.png')).status).toBe(409);
+ expect((await request(foreign).post(root+'/students').send({captureOnly:true,clientId})).status).toBe(404);
+});
+it('prepares an uploaded guide in the background only with consent and retains educator final review',async()=>{
+ let calls=0;const auto=createApp(store,owner,{correction:{extractGuide:async(guide,refs,count)=>{calls++;expect(guide.totalMarks).toBe(0);expect(count).toBe(0);expect(refs).toHaveLength(2);return {model:'fixture',questions:[{position:1,section:'Section A',type:'SHORT_ANSWER',prompt:'State a principle',expectedAnswer:'A principle',maxMarks:7,options:[],rubric:[]}]};}}});
+ const created=await request(auto).post('/api/correction/sessions').send({name:'Automatic guide',mode:'INDIVIDUAL',inferReferenceMarks:true}),root='/api/correction/sessions/'+created.body.id;
+ for(const kind of ['question','guide'])await request(auto).post(root+'/'+kind).attach('file',page,kind+'.png');
+ expect((await request(auto).post(root+'/prepare-guide').send({consent:false})).status).toBe(422);expect(calls).toBe(0);
+ const prepared=await request(auto).post(root+'/prepare-guide').send({consent:true});expect(prepared.status).toBe(200);expect(prepared.body.guide.totalMarks).toBe(7);expect(prepared.body.guide.status).toBe('READY');expect(prepared.body.status).toBe('OPEN');expect(prepared.body.publications).toHaveLength(0);
+ expect((await request(auto).post(root+'/prepare-guide').send({consent:true})).status).toBe(200);expect(calls).toBe(1);
+});

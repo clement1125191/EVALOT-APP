@@ -74,6 +74,7 @@ export class Authentication {
       const token=await transaction(this.db,async db=>{await this.event(db,row.id,'SIGNED_IN');await db.query('DELETE FROM auth_rate_limits WHERE bucket=$1',[digest(`login-email:${input.email}`)]);return this.session(db,row.id,input.remember,sessionToken(req));});
       this.setCookie(res,token,input.remember);res.json({teacher:{id:row.id,displayName:row.displayName,email:row.email}});
     });
+    router.post('/remember',async(req,res)=>{z.object({}).strict().parse(req.body);const teacher=await this.teacher(req);if(!teacher)throw new ApiError(401,'Sign in before remembering this device.');const token=await transaction(this.db,db=>this.session(db,teacher.id,true,sessionToken(req)));this.setCookie(res,token,true);res.json({rememberedDays:30});});
     router.post('/logout',async(req,res)=>{
       const teacher=await this.teacher(req);const token=sessionToken(req);
       if(token)await transaction(this.db,async db=>{await db.query('DELETE FROM teacher_sessions WHERE token_hash=$1',[digest(token)]);if(teacher)await this.event(db,teacher.id,'SIGNED_OUT');});

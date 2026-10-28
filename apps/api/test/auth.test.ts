@@ -83,3 +83,5 @@ describe('Teacher authentication',()=>{
     expect((await db.query('SELECT attempts FROM auth_rate_limits WHERE bucket=$1',[(await import('node:crypto')).createHash('sha256').update(`login-email:${input.email}`).digest('hex')])).rows).toEqual([]);
   },30000);
 });
+
+it('remembers an authenticated device for 30 days and rotates the previous session',async()=>{expect((await request(app).post('/api/auth/remember').set(writeHeader).send({})).status).toBe(401);const {agent,response}=await register();const previous=response.headers['set-cookie'][0].split(';')[0];const remembered=await agent.post('/api/auth/remember').set(writeHeader).send({});expect(remembered.status).toBe(200);expect(remembered.headers['set-cookie'][0]).toContain('Max-Age=2592000');expect(remembered.headers['set-cookie'][0]).toContain('HttpOnly');expect((await request(app).get('/api/auth/me').set('Cookie',previous)).status).toBe(401);expect((await agent.get('/api/auth/me')).status).toBe(200);});

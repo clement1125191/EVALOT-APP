@@ -1,8 +1,10 @@
+import {hasVault,unlockVault,vaultUnlocked,lockVault,vaultOwner} from './offline-vault';
 import {useState,useEffect,type ReactNode} from 'react';
 import {api} from './api';
 import './login.css';
 export interface Teacher{id:string;displayName:string;email:string;}
 export function TeacherAccess({children}:{children:(teacher:Teacher,onLogout:()=>void)=>ReactNode}){
+  const [pinGate,setPinGate]=useState(false),[pin,setPin]=useState('');
   const [teacher,setTeacher]=useState<Teacher|null>(null);const [loading,setLoading]=useState(true);
   const [connectionError,setConnectionError]=useState('');const [signup,setSignup]=useState(false);
   const [visible,setVisible]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
@@ -12,7 +14,8 @@ export function TeacherAccess({children}:{children:(teacher:Teacher,onLogout:()=
   const [password,setPassword]=useState('');const [remember,setRemember]=useState(false);
   async function check(){
     setLoading(true);setConnectionError('');
-    try{const response=await fetch('/api/auth/me');if(response.status===401){setTeacher(null);return;}const result=await response.json();if(!response.ok)throw new Error('Unable to reach your teacher workspace.');setTeacher(result.teacher);}
+    if(await hasVault()&&!vaultUnlocked()&&!resetToken){setPinGate(true);setLoading(false);return;}
+    try{const response=await fetch('/api/auth/me');if(response.status===401){setTeacher(null);return;}const result=await response.json();if(!response.ok)throw new Error('Unable to reach your teacher workspace.');if(vaultUnlocked()&&vaultOwner()!==result.teacher.id)lockVault();setTeacher(result.teacher);}
     catch(e){setConnectionError(e instanceof Error ? e.message:'Unable to connect.');}
     finally{setLoading(false);}
   }
@@ -21,14 +24,16 @@ export function TeacherAccess({children}:{children:(teacher:Teacher,onLogout:()=
     const params=new URLSearchParams(location.search);const failure=params.get('authError');
     if(failure)setError(failure==='existing-account'?'This email already has an Evalot account. Sign in with its password, or reset your password.':'Google sign-in could not be completed. Please try again.');
     if(params.has('reset') || failure)history.replaceState(null,'',location.pathname);
-    const expired=()=>{setTeacher(null);setPassword('');setError('Your session has ended. Please sign in again.');};
-    window.addEventListener('evalot:session-expired',expired);return()=>window.removeEventListener('evalot:session-expired',expired);
+    const lock=()=>{lockVault();setTeacher(null);setPin('');setPinGate(true);};window.addEventListener('evalot:lock-workspace',lock);
+    const expired=()=>{lockVault();setPinGate(false);setTeacher(null);setPassword('');setError('Your session has ended. Please sign in again.');};
+    window.addEventListener('evalot:session-expired',expired);return()=>{window.removeEventListener('evalot:session-expired',expired);window.removeEventListener('evalot:lock-workspace',lock);};
   },[]);
   async function logout(){
-    setBusy(true);try{await api('/auth/logout','POST');setTeacher(null);setPassword('');setSignup(false);setError('');}
+    setBusy(true);try{await api('/auth/logout','POST');lockVault();setTeacher(null);setPassword('');setSignup(false);setError('');}
     catch(e){window.alert(e instanceof Error ? e.message:'Unable to sign out.');}finally{setBusy(false);}
   }
   if(loading)return <div className="access-loading" role="status">Opening your teacher workspace…</div>;
+  if(pinGate&&!resetToken)return <div className="login-layout passcode-unlock"><section className="login-form-area"><form className="login-form-inner" onSubmit={e=>{e.preventDefault();setBusy(true);setError('');void (async()=>{const saved=await unlockVault(pin);if(navigator.onLine){try{const response=await fetch('/api/auth/me');if(response.status===401){setPinGate(false);setError('Your online session expired. Sign in once to reconnect. Your offline captures are preserved.');return;}if(!response.ok)throw new Error('Server unavailable');const current=await response.json();if(current.teacher.id!==saved.id){lockVault();throw new Error('This browser is signed into a different account. Sign out of that account before unlocking saved work.');}setTeacher(current.teacher);}catch(e){if(!vaultUnlocked())throw e;setTeacher(saved);}}else setTeacher(saved);setPinGate(false);setPin('');})().catch(e=>setError(e.message)).finally(()=>setBusy(false));}}><h2>Unlock your workspace</h2><p>{navigator.onLine?'Enter your device passcode to continue.':'Offline: unlock saved classes and capture student papers.'}</p><label>Passcode<input autoFocus required type="password" inputMode="numeric" minLength={6} maxLength={12} autoComplete="current-password" value={pin} onChange={e=>setPin(e.target.value)}/></label>{error&&<p role="alert">{error}</p>}<button disabled={busy}>{busy?'Unlocking...':'Unlock'}</button><button type="button" className="text-button" disabled={busy} onClick={()=>{lockVault();setPinGate(false);setError('');}}>Use account sign-in instead</button><p className="hint">Forgot your passcode? Sign in online. Removing the saved device data deletes unsynced captures; it does not recover them.</p></form></section></div>;
   if(teacher && !resetToken)return <>{children(teacher,()=>{if(!busy)void logout();})}</>;
   return <div className="login-layout">
     <section className="login-story"><a className="login-brand" href="/">evalot<span>FOR TEACHERS</span></a><div className="story-content"><span className="story-tag">MORE TIME FOR WHAT MATTERS</span><h1>A little less marking.<br/>A lot more teaching.</h1><p>Your assessments, your marking guide, your final say. One focused workspace to help you move through a pile of papers with confidence.</p><div className="story-card"><div className="paper-stack"><span>Q1</span><div><i/><i/><i/></div><b>✓</b></div><div className="story-card-caption"><strong>Clarity from the first question.</strong><small>Set the guide. Review the work. Own the marks.</small></div></div></div><footer>Built around a teacher’s judgement.</footer></section>
@@ -42,7 +47,7 @@ export function TeacherAccess({children}:{children:(teacher:Teacher,onLogout:()=
         event.preventDefault();const values=new FormData(event.currentTarget);
         if((signup || resetToken) && password!==values.get('confirmPassword')){setError('Your passwords do not match.');return;}
         setBusy(true);setError('');
-        try{if(recovery || resetToken){const result=await api<{message:string}>(resetToken?'/auth/reset-password':'/auth/forgot-password','POST',resetToken?{token:resetToken,password}:{email:values.get('email')});setNotice(result.message);if(resetToken){setResetToken('');setRecovery(false);setSignup(false);setPassword('');}return;}const body={email:values.get('email'),password,remember,...(signup ? {displayName:values.get('displayName')}:{})};const result=await api<{teacher:Teacher}>(signup ? '/auth/register':'/auth/login','POST',body);setTeacher(result.teacher);setPassword('');}
+        try{if(recovery || resetToken){const result=await api<{message:string}>(resetToken?'/auth/reset-password':'/auth/forgot-password','POST',resetToken?{token:resetToken,password}:{email:values.get('email')});setNotice(result.message);if(resetToken){setResetToken('');setRecovery(false);setSignup(false);setPassword('');}return;}const body={email:values.get('email'),password,remember,...(signup ? {displayName:values.get('displayName')}:{})};const result=await api<{teacher:Teacher}>(signup ? '/auth/register':'/auth/login','POST',body);if(vaultUnlocked()&&vaultOwner()!==result.teacher.id)lockVault();setTeacher(result.teacher);setPassword('');}
         catch(e){setError(e instanceof Error ? e.message:'Unable to sign in.');}finally{setBusy(false);}
       }}>
         <fieldset disabled={busy || Boolean(connectionError)} className="question-fieldset">
