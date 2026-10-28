@@ -1,3 +1,5 @@
+import {billingPolicyRouter} from './billing-policy.js';
+import {educatorSettingsRouter} from './educator-settings.js';
 import express from 'express';
 import helmet from 'helmet';
 import { z } from 'zod';
@@ -49,6 +51,8 @@ export function createApp(db: Store, teacherId: string | null = null, options: {
   app.use('/api',libraryRouter(db));
   app.use('/api',materialLibraryRouter(db));
   app.use('/api',teachingRouter(db));
+  app.use('/api',educatorSettingsRouter(db));
+  app.use('/api',billingPolicyRouter());
   app.use('/api',correctionRouter(db,options.correction));
   app.use('/api',preparationRouter(db,options.preparation));
   app.get('/api/assessments', async (_req, res) => { res.json(await service.list(res.locals.teacher.id)); });

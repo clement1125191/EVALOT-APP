@@ -17,7 +17,7 @@ const base = {title:'S3 English',subject:'English',className:'S3 A',totalMarks:1
 const question = {position:1,type:'SHORT_ANSWER',prompt:'Define a noun.',maxMarks:10,options:[],expectedAnswer:'A naming word.',rubric:[]};
 async function create() { const r = await request(app).post('/api/assessments').send(base); expect(r.status).toBe(201); return r.body; }
 beforeAll(async () => {
-  await db.exec(await readFile(new URL('../migrations/001_initial.sql', import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/016_academic_marking.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/005_preparation.sql', import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../migrations/001_initial.sql', import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/016_academic_marking.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/018_educator_preferences.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/005_preparation.sql', import.meta.url),'utf8'));
   await db.query('INSERT INTO teachers(id,display_name) VALUES($1,$2),($3,$4)', [owner,'Teacher A',other,'Teacher B']);
 }, 30000);
 afterAll(async () => { await db.close(); });

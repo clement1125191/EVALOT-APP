@@ -24,3 +24,12 @@ Direct camera capture: selecting One student or Whole class opens the lens immed
 External papers may be captured before structured rules are confirmed. Both AI queueing and manual marking remain blocked until the guide is ready. Permission errors offer retry or upload; unavailable AI does not fabricate marks. Camera hardware and a live provider still need an end-to-end check on the teacher's device.
 
 Workspace clarity update: question paper and marking guide use compact + attachment menus with Upload files / Use saved Evalot paper and removable file chips. The student camera shows a labelled Take photo action; when live preview is unavailable it opens a native image input with capture=environment. Phone/browser permission and camera behavior still require on-device confirmation. Less-used workbook controls are collapsed. The homepage shows working feature windows for preparation, camera marking, publishing, classes, materials, saved papers, headers, logos, guidelines, claims and settings.
+
+
+## Simplified camera setup
+
+Choose class, then subject if the class has several lessons. The camera entry screen contains the question paper, matching marking guide, an optional CSV student list and Open camera. Saved Evalot papers fill both references together. The internal session name is derived from the selected paper or uploaded filename; educators do not need to type a workbook name or an assumed maximum before capture.
+
+Settings > Marking settings and optional student list saves account-level marking defaults. Without customization, Evalot Fair Marking applies. Each new session takes its own snapshot; changing defaults does not regrade existing work. Individual session settings stay locked after marking starts. Rosters remain session-specific and are never reused silently for another class.
+
+External uploads created through the simplified screen have inferReferenceMarks enabled. They may be photographed immediately, but processing still waits for confirmed structured rules. AI guide import reads the actual question count and marks; manual guide entry calculates the maximum from confirmed question marks. A temporary draft database maximum is not used for grading. Confirmation validates the actual total, updates the assessment and locks the guide before marking can start. Deploy migration 018 before using this screen.

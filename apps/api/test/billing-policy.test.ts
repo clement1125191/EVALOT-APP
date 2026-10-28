@@ -1,0 +1,6 @@
+import {it,expect} from 'vitest';
+import {billingPolicy,estimateProcessing} from '../src/billing-policy';
+it('keeps free allowance unconfigured rather than promising invented credits',()=>{const policy=billingPolicy({});expect(policy.trialAllowance).toBeNull();expect(policy.billingActive).toBe(false);expect(policy.checkoutEnabled).toBe(false);expect(policy.trialDays).toBe(45);});
+it('uses only excess papers when a job crosses the trial allowance',()=>{const policy=billingPolicy({BILLING_TRIAL_PAPERS:'30'});expect(estimateProcessing(policy,20,10)).toMatchObject({freePapers:10,paidPapers:10,amountRwf:300,remainingFree:0});expect(estimateProcessing(policy,8,10)).toMatchObject({amountRwf:0,remainingFree:2});});
+it('uses submitted job size for the rate and handles tier boundaries',()=>{const p=billingPolicy({});expect(estimateProcessing(p,45,12).amountRwf).toBe(990);expect(estimateProcessing(p,46,12).amountRwf).toBe(850);expect(estimateProcessing(p,100,0).rate).toBe(25);expect(estimateProcessing(p,101,0).rate).toBe(20);expect(estimateProcessing(p,8,10).freePapers).toBe(8);});
+it('rejects invalid prices and paper counts',()=>{expect(()=>billingPolicy({BILLING_RATE_SMALL_RWF:'-1'})).toThrow();expect(()=>estimateProcessing(billingPolicy({}),1.5,0)).toThrow();expect(()=>estimateProcessing(billingPolicy({}),1,-1)).toThrow();});

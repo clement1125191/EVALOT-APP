@@ -21,7 +21,7 @@ const guide={position:1,type:'SHORT_ANSWER',prompt:'Define a noun.',maxMarks:10,
 beforeAll(async()=>{
   directory=await mkdtemp(join(tmpdir(),'evalot-uploads-'));
   app=createApp(store,owner,{storageRoot:directory});foreignApp=createApp(store,other,{storageRoot:directory});
-  for(const file of ['001_initial.sql','002_uploads.sql','005_preparation.sql'])await db.exec(await readFile(new URL(`../migrations/${file}`,import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/016_academic_marking.sql',import.meta.url),'utf8'));
+  for(const file of ['001_initial.sql','002_uploads.sql','005_preparation.sql'])await db.exec(await readFile(new URL(`../migrations/${file}`,import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/016_academic_marking.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/018_educator_preferences.sql',import.meta.url),'utf8'));
   await db.query('INSERT INTO teachers(id,display_name) VALUES($1,$2),($3,$4)',[owner,'Teacher A',other,'Teacher B']);
   const document=await PDFDocument.create();document.addPage([300,400]);pdf=Buffer.from(await document.save());
   png=await sharp({create:{width:40,height:40,channels:3,background:'#ffffff'}}).png().toBuffer();
