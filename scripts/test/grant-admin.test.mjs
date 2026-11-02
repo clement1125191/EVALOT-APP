@@ -1,0 +1,13 @@
+import {beforeAll,afterAll,it,expect} from 'vitest';
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';
+import {randomUUID} from 'node:crypto';
+import {grantAdministrator} from '../lib/grant-admin.mjs';
+const db=new PGlite(),id=randomUUID(),other=randomUUID();
+beforeAll(async()=>{for(const file of ['001_initial','003_teacher_auth','019_admin_control_room'])await db.exec(await readFile(new URL('../../apps/api/migrations/'+file+'.sql',import.meta.url),'utf8'));await db.query('INSERT INTO teachers(id,display_name,email) VALUES($1,$2,$3),($4,$5,$6)',[id,'Admin candidate','candidate@example.test',other,'Rollback candidate','rollback@example.test']);},30000);
+afterAll(async()=>{await db.close();});
+it('previews without granting administrator access',async()=>{expect((await grantAdministrator(db,'candidate@example.test')).status).toBe('preview');expect((await db.query('SELECT * FROM admin_accounts')).rows).toHaveLength(0);});
+it('grants and audits a UUID account with an independently typed text target',async()=>{expect((await grantAdministrator(db,'candidate@example.test',true)).status).toBe('granted');const event=(await db.query('SELECT actor_id,target_id,action FROM admin_events')).rows[0];expect(event).toEqual({actor_id:id,target_id:id,action:'ADMIN_ACCESS_GRANTED'});expect((await db.query('SELECT active FROM admin_accounts WHERE teacher_id=$1',[id])).rows[0].active).toBe(true);});
+it('is idempotent when the start command runs again',async()=>{expect((await grantAdministrator(db,'CANDIDATE@example.test',true)).status).toBe('existing');expect((await db.query('SELECT * FROM admin_events')).rows).toHaveLength(1);});
+it('rolls the grant back when the audit write fails',async()=>{const failing={query:(sql,args)=>sql.startsWith('INSERT INTO admin_events')?Promise.reject(new Error('Simulated audit failure')):db.query(sql,args)};await expect(grantAdministrator(failing,'rollback@example.test',true)).rejects.toThrow('audit failure');expect((await db.query('SELECT * FROM admin_accounts WHERE teacher_id=$1',[other])).rows).toHaveLength(0);});
+it('refuses missing or suspended accounts without changing access',async()=>{await expect(grantAdministrator(db,'missing@example.test',true)).rejects.toThrow('No existing account');await db.query('INSERT INTO account_controls(teacher_id,suspended) VALUES($1,true)',[other]);await expect(grantAdministrator(db,'rollback@example.test',true)).rejects.toThrow('Restore this account');});
