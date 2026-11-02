@@ -11,10 +11,10 @@ export function sharedLogoRouter(db:Store){
  router.get('/library/shared-logos',async(req,res)=>{
   const query=key(institution.parse(req.query.institution));
   // Literal substring search: a school name containing % or _ is not a wildcard.
-  res.json((await db.query('SELECT id,institution_name AS "institutionName" FROM shared_institution_logos WHERE strpos(institution_key,$1)>0 ORDER BY institution_name,created_at DESC LIMIT 20',[query])).rows);
+  res.json((await db.query('SELECT id,institution_name AS "institutionName" FROM shared_institution_logos WHERE active AND strpos(institution_key,$1)>0 ORDER BY institution_name,created_at DESC LIMIT 20',[query])).rows);
  });
  router.get('/library/shared-logos/:id/original',async(req,res)=>{
-  const row=(await db.query('SELECT bytes FROM shared_institution_logos WHERE id=$1',[z.string().uuid().parse(req.params.id)])).rows[0];
+  const row=(await db.query('SELECT bytes FROM shared_institution_logos WHERE id=$1 AND active',[z.string().uuid().parse(req.params.id)])).rows[0];
   if(!row)throw new ApiError(404,'Shared logo not found.');
   res.set('Cache-Control','private, no-store').type('image/png').send(Buffer.from(row.bytes));
  });
@@ -32,7 +32,7 @@ export function sharedLogoRouter(db:Store){
    await tx.query('SELECT id FROM teachers WHERE id=$1 FOR UPDATE',[owner]);
    const existing=(await tx.query('SELECT id,name FROM library_logos WHERE teacher_id=$1 AND shared_logo_id=$2',[owner,sharedId])).rows[0];
    if(existing)return existing;
-   const shared=(await tx.query('SELECT institution_name,bytes FROM shared_institution_logos WHERE id=$1',[sharedId])).rows[0];
+   const shared=(await tx.query('SELECT institution_name,bytes FROM shared_institution_logos WHERE id=$1 AND active',[sharedId])).rows[0];
    if(!shared)throw new ApiError(404,'Shared logo not found.');
    if((await tx.query('SELECT count(*)::int AS count FROM library_logos WHERE teacher_id=$1',[owner])).rows[0].count>=30)throw new ApiError(422,'Your library can hold up to 30 logos.');
    return (await tx.query('INSERT INTO library_logos(id,teacher_id,name,bytes,shared_logo_id) VALUES($1,$2,$3,$4,$5) RETURNING id,name',[randomUUID(),owner,shared.institution_name,shared.bytes,sharedId])).rows[0];

@@ -1,3 +1,6 @@
+import type {HeaderExtractor} from './header-photo.js';
+import {resourcesRouter,publicContentRouter} from './resources.js';
+import {supportRouter} from './support.js';
 import {adminRouter} from './admin.js';
 import {billingPolicyRouter} from './billing-policy.js';
 import {educatorSettingsRouter} from './educator-settings.js';
@@ -21,7 +24,7 @@ import {guidelinesRouter} from './guidelines.js';
 import {libraryRouter} from './library.js';
 import { Authentication } from './auth.js';
 import type {AccessOptions} from './account-access.js';
-export function createApp(db: Store, teacherId: string | null = null, options: {storageRoot?: string;allowedOrigins?:string[];secureCookies?:boolean;auth?:AccessOptions;preparation?:PreparationOptions;correction?:CorrectionOptions} = {}) {
+export function createApp(db: Store, teacherId: string | null = null, options: {storageRoot?: string;allowedOrigins?:string[];secureCookies?:boolean;auth?:AccessOptions;preparation?:PreparationOptions;correction?:CorrectionOptions;extractHeader?:HeaderExtractor} = {}) {
   if (teacherId) z.string().uuid().parse(teacherId);
   const app = express(); const service = new Assessments(db);
   const uploads = new Uploads(db, new PrivateStorage(options.storageRoot ?? fileURLToPath(new URL('../../../.data/uploads/', import.meta.url))));
@@ -47,6 +50,7 @@ export function createApp(db: Store, teacherId: string | null = null, options: {
     }
     next();
   });
+  app.use('/api',publicContentRouter(db));
   app.use('/api/auth',authentication.router());
   app.use('/api',async(req,res,next)=>{
     // Explicit dependency injection for existing service tests only. Server startup never supplies a fixed identity.
@@ -60,6 +64,8 @@ export function createApp(db: Store, teacherId: string | null = null, options: {
   app.use('/api',teachingRouter(db));
   app.use('/api',educatorSettingsRouter(db));
   app.use('/api',billingPolicyRouter(db));
+  app.use('/api',supportRouter(db));
+  app.use('/api',resourcesRouter(db,{extractHeader:options.extractHeader,extractGuide:options.correction?.extractGuide}));
   app.use('/api',adminRouter(db,{aiPreparation:!!options.preparation?.generate,aiMarking:!!options.correction?.evaluate,ocr:!!options.correction?.ocr,cameraEnhancement:!!options.correction?.scan,googleSignIn:!!options.auth?.google,passwordRecovery:!!options.auth?.sendReset}));
   app.use('/api',correctionRouter(db,options.correction));
   app.use('/api',preparationRouter(db,options.preparation));

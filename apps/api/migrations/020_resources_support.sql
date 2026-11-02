@@ -1,0 +1,12 @@
+CREATE TABLE platform_resources(id uuid PRIMARY KEY,creator_id uuid NOT NULL REFERENCES teachers(id),kind text NOT NULL CHECK(kind IN ('LOGO','HEADER','MODEL','MOCK')),title text NOT NULL,description text NOT NULL DEFAULT '',institution text NOT NULL DEFAULT '',subject text NOT NULL DEFAULT '',level text NOT NULL DEFAULT '',draft jsonb NOT NULL,published jsonb,archived boolean NOT NULL DEFAULT false,revision integer NOT NULL DEFAULT 0,created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE platform_resource_files(id uuid PRIMARY KEY,resource_id uuid NOT NULL REFERENCES platform_resources(id),purpose text NOT NULL CHECK(purpose IN ('SOURCE','GUIDE','REFINED')),name text NOT NULL,mime_type text NOT NULL,bytes bytea NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TRIGGER platform_resource_files_immutable BEFORE UPDATE OR DELETE ON platform_resource_files FOR EACH ROW EXECUTE FUNCTION immutable_history();
+ALTER TABLE IF EXISTS shared_institution_logos ADD COLUMN active boolean NOT NULL DEFAULT true;
+ALTER TABLE IF EXISTS shared_institution_logos ADD COLUMN managed_resource_id uuid REFERENCES platform_resources(id);
+CREATE TABLE support_tickets(id uuid PRIMARY KEY,teacher_id uuid NOT NULL REFERENCES teachers(id),title text NOT NULL,category text NOT NULL CHECK(category IN ('TECHNICAL','ACCOUNT','MARKING','BILLING','OTHER')),status text NOT NULL DEFAULT 'OPEN' CHECK(status IN ('OPEN','IN_PROGRESS','RESOLVED')),revision integer NOT NULL DEFAULT 0,created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX support_owner ON support_tickets(teacher_id,updated_at DESC);
+CREATE TABLE support_messages(id uuid PRIMARY KEY,ticket_id uuid NOT NULL REFERENCES support_tickets(id),author_id uuid NOT NULL REFERENCES teachers(id),sender_role text NOT NULL CHECK(sender_role IN ('EDUCATOR','ADMIN')),message text NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TRIGGER support_messages_immutable BEFORE UPDATE OR DELETE ON support_messages FOR EACH ROW EXECUTE FUNCTION immutable_history();
+ALTER TABLE platform_resources ADD COLUMN price_rwf integer NOT NULL DEFAULT 0 CHECK(price_rwf BETWEEN 0 AND 1000000);
+ALTER TABLE platform_resources ADD COLUMN moderation text NOT NULL DEFAULT 'DRAFT' CHECK(moderation IN ('DRAFT','SUBMITTED','APPROVED','REJECTED'));
+CREATE TABLE app_content(key text PRIMARY KEY,draft text NOT NULL,published text,revision integer NOT NULL DEFAULT 0,updated_at timestamptz NOT NULL DEFAULT now());

@@ -62,3 +62,5 @@ export * from './ocr.js';
 
 export * from './academic.js';
 export * from './marking-policy.js';
+
+export * from './resources.js';

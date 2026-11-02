@@ -1,0 +1,9 @@
+import {useEffect,useState} from 'react';
+import {api} from './api';
+export function AdminContent(){const [keys,setKeys]=useState<string[]>([]),[rows,setRows]=useState<any[]>([]),[key,setKey]=useState('mission'),[text,setText]=useState(''),[revision,setRevision]=useState(0),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false);
+ async function load(selected=key){const result=await api<{keys:string[];rows:any[]}>('/admin/content');setKeys(result.keys);setRows(result.rows);choose(selected,result.rows);}
+ function choose(value:string,data=rows){setKey(value);const row=data.find(r=>r.key===value);setText(row?.draft??'');setRevision(row?.revision??0);}
+ useEffect(()=>{void load().catch(e=>setError(e.message));},[]);
+ async function save(publish:boolean){setBusy(true);setError('');try{await api('/admin/content/'+key,'PUT',{revision,text,publish});await load();setNotice(publish?'Wording published.':'Draft saved; published wording stays unchanged.');}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+ return <section className="panel"><h2>App wording</h2><p>Edit the mission, vision, values and supported workspace headings. Text is displayed safely without HTML.</p>{error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}<label>Section<select disabled={busy} value={key} onChange={e=>choose(e.target.value)}>{keys.map(v=><option key={v}>{v}</option>)}</select></label><label>Draft text<textarea rows={8} maxLength={2000} value={text} onChange={e=>setText(e.target.value)}/></label><p>Current published text: {rows.find(r=>r.key===key)?.published??'Default wording'}</p><button disabled={busy||!text.trim()} onClick={()=>void save(false)}>Save draft</button><button disabled={busy||!text.trim()} onClick={()=>void save(true)}>Publish wording</button></section>;
+}
