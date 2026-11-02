@@ -27,3 +27,5 @@ Admins can draft and publish mission, vision, fairness and empathy text, plus wo
 Commit and push to main. Render runs migration 020 using the existing hosted start command. Vercel builds the updated frontend. Check both deployment logs; a successful local build does not confirm hosted deployment. Keep APP_PUBLIC_URL and APP_ORIGINS consistent with https://evalotapps.vercel.app.
 
 Resource files are stored in PostgreSQL, unlike temporary server upload storage. Monitor database capacity and arrange durable backups before expanding the pilot.
+
+Administrator delegation and manual payment activation are documented in [MANUAL_PAYMENTS.md](MANUAL_PAYMENTS.md).

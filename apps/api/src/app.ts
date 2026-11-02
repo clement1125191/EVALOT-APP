@@ -1,3 +1,5 @@
+import {adminTeamRouter} from './admin-team.js';
+import {manualPaymentsRouter} from './manual-payments.js';
 import type {HeaderExtractor} from './header-photo.js';
 import {resourcesRouter,publicContentRouter} from './resources.js';
 import {supportRouter} from './support.js';
@@ -64,6 +66,8 @@ export function createApp(db: Store, teacherId: string | null = null, options: {
   app.use('/api',teachingRouter(db));
   app.use('/api',educatorSettingsRouter(db));
   app.use('/api',billingPolicyRouter(db));
+  app.use('/api',adminTeamRouter(db));
+  app.use('/api',manualPaymentsRouter(db));
   app.use('/api',supportRouter(db));
   app.use('/api',resourcesRouter(db,{extractHeader:options.extractHeader,extractGuide:options.correction?.extractGuide}));
   app.use('/api',adminRouter(db,{aiPreparation:!!options.preparation?.generate,aiMarking:!!options.correction?.evaluate,ocr:!!options.correction?.ocr,cameraEnhancement:!!options.correction?.scan,googleSignIn:!!options.auth?.google,passwordRecovery:!!options.auth?.sendReset}));

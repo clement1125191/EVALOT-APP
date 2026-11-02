@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import {grantAdministrator} from '../lib/grant-admin.mjs';
 const db=new PGlite(),id=randomUUID(),other=randomUUID();
-beforeAll(async()=>{for(const file of ['001_initial','003_teacher_auth','019_admin_control_room'])await db.exec(await readFile(new URL('../../apps/api/migrations/'+file+'.sql',import.meta.url),'utf8'));await db.query('INSERT INTO teachers(id,display_name,email) VALUES($1,$2,$3),($4,$5,$6)',[id,'Admin candidate','candidate@example.test',other,'Rollback candidate','rollback@example.test']);},30000);
+beforeAll(async()=>{for(const file of ['001_initial','003_teacher_auth','019_admin_control_room','021_admin_manual_payments'])await db.exec(await readFile(new URL('../../apps/api/migrations/'+file+'.sql',import.meta.url),'utf8'));await db.query('INSERT INTO teachers(id,display_name,email) VALUES($1,$2,$3),($4,$5,$6)',[id,'Admin candidate','candidate@example.test',other,'Rollback candidate','rollback@example.test']);},30000);
 afterAll(async()=>{await db.close();});
 it('previews without granting administrator access',async()=>{expect((await grantAdministrator(db,'candidate@example.test')).status).toBe('preview');expect((await db.query('SELECT * FROM admin_accounts')).rows).toHaveLength(0);});
 it('grants and audits a UUID account with an independently typed text target',async()=>{expect((await grantAdministrator(db,'candidate@example.test',true)).status).toBe('granted');const event=(await db.query('SELECT actor_id,target_id,action FROM admin_events')).rows[0];expect(event).toEqual({actor_id:id,target_id:id,action:'ADMIN_ACCESS_GRANTED'});expect((await db.query('SELECT active FROM admin_accounts WHERE teacher_id=$1',[id])).rows[0].active).toBe(true);});

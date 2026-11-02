@@ -8,7 +8,7 @@ export async function grantAdministrator(client,email,grant=false){
   if(grant){
    if((await client.query('SELECT teacher_id FROM admin_accounts WHERE teacher_id=$1 AND active',[row.id])).rows.length)status='existing';
    else{
-    await client.query('INSERT INTO admin_accounts(teacher_id,active) VALUES($1,true) ON CONFLICT(teacher_id) DO UPDATE SET active=true',[row.id]);
+    await client.query('INSERT INTO admin_accounts(teacher_id,active) VALUES($1,true) ON CONFLICT(teacher_id) DO UPDATE SET active=true,revision=admin_accounts.revision+1',[row.id]);
     // actor_id is UUID, target_id is text: use independent parameters.
     await client.query('INSERT INTO admin_events(id,actor_id,action,target_id,reason,payload) VALUES($1,$2,$3,$4,$5,$6)',[crypto.randomUUID(),row.id,'ADMIN_ACCESS_GRANTED',String(row.id),'Granted by trusted server operator CLI',JSON.stringify({source:'operator-cli'})]);
     status='granted';

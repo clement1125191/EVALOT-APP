@@ -1,0 +1,11 @@
+ALTER TABLE admin_accounts ADD COLUMN revision integer NOT NULL DEFAULT 0;
+CREATE TABLE manual_payment_configuration(singleton boolean PRIMARY KEY DEFAULT true CHECK(singleton),enabled boolean NOT NULL DEFAULT false,require_credits boolean NOT NULL DEFAULT false,methods jsonb NOT NULL DEFAULT '[]',revision integer NOT NULL DEFAULT 0,updated_at timestamptz NOT NULL DEFAULT now());
+INSERT INTO manual_payment_configuration(singleton) VALUES(true);
+CREATE TABLE manual_payments(id uuid PRIMARY KEY,teacher_id uuid NOT NULL REFERENCES teachers(id),method_id uuid NOT NULL,method_snapshot jsonb NOT NULL,amount_rwf integer NOT NULL CHECK(amount_rwf BETWEEN 1 AND 1000000000),reference text NOT NULL,reference_key text NOT NULL,status text NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING','CONFIRMED','REJECTED')),revision integer NOT NULL DEFAULT 0,decision_reason text NOT NULL DEFAULT '',reviewed_by uuid REFERENCES teachers(id),created_at timestamptz NOT NULL DEFAULT now(),reviewed_at timestamptz);
+CREATE UNIQUE INDEX manual_payment_reference ON manual_payments(reference_key) WHERE status IN ('PENDING','CONFIRMED');
+CREATE INDEX manual_payment_owner ON manual_payments(teacher_id,created_at DESC);
+CREATE TABLE educator_credit_accounts(teacher_id uuid PRIMARY KEY REFERENCES teachers(id),credits integer NOT NULL DEFAULT 0 CHECK(credits>=0),access_until timestamptz);
+CREATE TABLE manual_payment_grants(payment_id uuid PRIMARY KEY REFERENCES manual_payments(id),teacher_id uuid NOT NULL REFERENCES teachers(id),credits integer NOT NULL CHECK(credits BETWEEN 0 AND 1000000),access_until timestamptz,administrator_id uuid NOT NULL REFERENCES teachers(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TRIGGER manual_payment_grants_immutable BEFORE UPDATE OR DELETE ON manual_payment_grants FOR EACH ROW EXECUTE FUNCTION immutable_history();
+CREATE TABLE marking_charges(student_id uuid PRIMARY KEY,teacher_id uuid NOT NULL REFERENCES teachers(id),credits integer NOT NULL CHECK(credits IN (0,1)),mode text NOT NULL CHECK(mode IN ('CREDIT','ACCESS')),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TRIGGER marking_charges_immutable BEFORE UPDATE OR DELETE ON marking_charges FOR EACH ROW EXECUTE FUNCTION immutable_history();
