@@ -6,6 +6,7 @@ import {ApiError} from './assessments.js';
 import {hashPassword,sessionToken,type Authentication} from './auth.js';
 export interface AccessOptions {
   publicUrl?:string;
+  appOrigins?:string[];
   sendReset?:(email:string,url:string)=>Promise<void>;
   google?:{clientId:string;clientSecret:string;redirectUri:string};
   fetch?:typeof fetch;
@@ -14,7 +15,7 @@ const hash=(v:string)=>createHash('sha256').update(v).digest('hex');
 const email=z.string().trim().toLowerCase().email().max(254);
 export function accountAccessRouter(db:Store,auth:Authentication,options:AccessOptions,secure:boolean){
   const router=Router();
-  router.get('/options',(_req,res)=>res.json({google:Boolean(options.google),recovery:Boolean(options.sendReset)}));
+  router.get('/options',(_req,res)=>res.json({google:Boolean(options.google),recovery:Boolean(options.sendReset),...(options.publicUrl?{appOrigin:new URL(options.publicUrl).origin,...(options.appOrigins?{appOrigins:options.appOrigins}:{})}:{})}));
   router.post('/forgot-password',async(req,res)=>{
     const input=z.object({email}).strict().parse(req.body);
     if(!options.sendReset)throw new ApiError(503,'Email recovery is awaiting provider setup.');

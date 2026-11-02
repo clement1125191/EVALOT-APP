@@ -1,0 +1,9 @@
+import {it,expect} from 'vitest';
+import request from 'supertest';
+import {createApp} from '../src/app';
+import type {Store} from '../src/db';
+const store:Store={query:async()=>({rows:[]}),connect:async()=>({query:async()=>({rows:[]}),release(){}})};
+const origin='https://evalot.example',app=createApp(store,null,{allowedOrigins:[origin],auth:{publicUrl:origin}});
+it('publishes the canonical app origin without account or provider secrets',async()=>{const r=await request(app).get('/api/auth/options');expect(r.body).toEqual({google:false,recovery:false,appOrigin:origin,appOrigins:[origin]});});
+it('distinguishes missing app headers, forbidden domains and cross-site metadata without exposing submitted passwords',async()=>{const missing=await request(app).post('/api/auth/login').send({password:'do-not-log'});expect(missing.status).toBe(403);expect(missing.body.reason).toBe('missing_request_header');expect(missing.text).not.toContain('do-not-log');const other=await request(app).post('/api/auth/login').set('X-Evalot-Request','1').set('Origin','https://other.example').send({});expect(other.status).toBe(403);expect(other.body.reason).toBe('origin_not_allowed');const cross=await request(app).post('/api/auth/login').set('X-Evalot-Request','1').set('Origin',origin).set('Sec-Fetch-Site','cross-site').send({});expect(cross.status).toBe(403);expect(cross.body.reason).toBe('cross_site_request');});
+it('accepts the configured same-origin request and continues to normal input validation',async()=>{const r=await request(app).post('/api/auth/login').set('X-Evalot-Request','1').set('Origin',origin).set('Sec-Fetch-Site','same-origin').send({});expect(r.status).toBe(422);});

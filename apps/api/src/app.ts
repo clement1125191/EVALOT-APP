@@ -32,12 +32,13 @@ export function createApp(db: Store, teacherId: string | null = null, options: {
   });
   app.disable('x-powered-by'); app.use(helmet()); app.use(express.json({limit: '1mb'}));
   app.get('/api/health', async (_req, res) => { await db.query('SELECT 1'); res.json({status:'ok',authMode:teacherId ? 'test':'password'}); });
-  const authentication=new Authentication(db,options.secureCookies??false,options.auth);
+  const authentication=new Authentication(db,options.secureCookies??false,{...options.auth,appOrigins:options.allowedOrigins});
   const origins=options.allowedOrigins??['http://127.0.0.1:5173','http://localhost:5173','http://127.0.0.1:5174','http://localhost:5174'];
   app.use('/api',(req,res,next)=>{
     res.set('Cache-Control','private, no-store');
     if(!teacherId && !['GET','HEAD','OPTIONS'].includes(req.method)){
-      if(req.get('X-Evalot-Request')!=='1' || (req.get('Origin') && !origins.includes(req.get('Origin')!)) || req.get('Sec-Fetch-Site')==='cross-site')throw new ApiError(403,'Request origin could not be verified.');
+      const reason=req.get('X-Evalot-Request')!=='1'?'missing_request_header':req.get('Origin')&&!origins.includes(req.get('Origin')!)?'origin_not_allowed':req.get('Sec-Fetch-Site')==='cross-site'?'cross_site_request':null;
+      if(reason){res.status(403).json({error:'Request origin could not be verified.',code:'REQUEST_ORIGIN_REJECTED',reason});return;}
     }
     next();
   });
