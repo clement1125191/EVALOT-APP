@@ -1,3 +1,4 @@
+import type {Database,Store} from './db.js';
 import {Router} from 'express';
 import {z} from 'zod';
 export interface BillingPolicy {trialDays:number;trialAllowance:number|null;rates:{upTo:number|null;rwf:number}[];checkoutEnabled:false;billingActive:false;}
@@ -10,4 +11,5 @@ export function estimateProcessing(policy:BillingPolicy,papers:number,freeRemain
  const freePapers=Math.min(papers,freeRemaining),paidPapers=papers-freePapers,rate=policy.rates.find(r=>r.upTo===null||papers<=r.upTo)!.rwf;
  return {papers,freePapers,paidPapers,rate,amountRwf:paidPapers*rate,remainingFree:freeRemaining-freePapers,estimateOnly:true};
 }
-export function billingPolicyRouter(){const router=Router();router.get('/billing/policy',(_req,res)=>res.json(billingPolicy()));router.post('/billing/estimate',(req,res)=>{const v=z.object({papers:z.number().int().min(1).max(500),freeRemaining:z.number().int().min(0).max(1000000)}).strict().parse(req.body);res.json(estimateProcessing(billingPolicy(),v.papers,v.freeRemaining));});return router;}
+export async function currentBillingPolicy(db:Database){const row=(await db.query('SELECT policy,revision FROM billing_configuration WHERE singleton=true')).rows[0];return row?{policy:row.policy as BillingPolicy,revision:row.revision}:{policy:billingPolicy(),revision:0};}
+export function billingPolicyRouter(db:Store){const router=Router();router.get('/billing/policy',async(_req,res)=>res.json((await currentBillingPolicy(db)).policy));router.post('/billing/estimate',async(req,res)=>{const v=z.object({papers:z.number().int().min(1).max(500),freeRemaining:z.number().int().min(0).max(1000000)}).strict().parse(req.body);res.json(estimateProcessing((await currentBillingPolicy(db)).policy,v.papers,v.freeRemaining));});return router;}

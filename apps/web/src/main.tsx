@@ -1,3 +1,4 @@
+import {AdminControlRoom} from './AdminControlRoom';
 import {OfflineActivities} from './OfflineActivities';
 import {CameraIcon} from './CaptureGuide';
 import {PaperReadyReminder} from './PaperReadyReminder';
@@ -96,6 +97,7 @@ function App({teacher,onLogout}:{teacher:Teacher;onLogout:()=>void}) {
 
     </main><PaperReadyReminder/></div>;
 }
-createRoot(document.getElementById('root')!).render(<React.StrictMode><TeacherAccess>{(teacher,onLogout)=><TeachingGate key={teacher.id} teacher={teacher}>{()=> <App teacher={teacher} onLogout={onLogout}/>}</TeachingGate>}</TeacherAccess></React.StrictMode>);
+function WorkspaceEntry({teacher,onLogout}:{teacher:Teacher;onLogout:()=>void}){const [admin,setAdmin]=useState(false),[checking,setChecking]=useState(true),[educatorView,setEducatorView]=useState(false);useEffect(()=>{let alive=true;void api<{isAdmin:boolean}>('/admin/access').then(v=>{if(alive)setAdmin(v.isAdmin);}).catch(()=>{}).finally(()=>{if(alive)setChecking(false);});return()=>{alive=false;};},[teacher.id]);if(checking)return <div className="access-loading" role="status">Opening your workspace...</div>;if(admin&&!educatorView)return <AdminControlRoom teacher={teacher} onLogout={onLogout} onWorkspace={()=>setEducatorView(true)}/>;return <>{admin&&<button type="button" className="admin-return-button" onClick={()=>setEducatorView(false)}>Admin control room</button>}<TeachingGate key={teacher.id} teacher={teacher}>{()=> <App teacher={teacher} onLogout={onLogout}/>}</TeachingGate></>;}
+createRoot(document.getElementById('root')!).render(<React.StrictMode><TeacherAccess>{(teacher,onLogout)=><WorkspaceEntry key={teacher.id} teacher={teacher} onLogout={onLogout}/>}</TeacherAccess></React.StrictMode>);
 
 if('serviceWorker' in navigator&&import.meta.env.PROD)void navigator.serviceWorker.register('/sw.js').catch(()=>{});

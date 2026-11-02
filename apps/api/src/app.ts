@@ -1,3 +1,4 @@
+import {adminRouter} from './admin.js';
 import {billingPolicyRouter} from './billing-policy.js';
 import {educatorSettingsRouter} from './educator-settings.js';
 import express from 'express';
@@ -52,7 +53,8 @@ export function createApp(db: Store, teacherId: string | null = null, options: {
   app.use('/api',materialLibraryRouter(db));
   app.use('/api',teachingRouter(db));
   app.use('/api',educatorSettingsRouter(db));
-  app.use('/api',billingPolicyRouter());
+  app.use('/api',billingPolicyRouter(db));
+  app.use('/api',adminRouter(db,{aiPreparation:!!options.preparation?.generate,aiMarking:!!options.correction?.evaluate,ocr:!!options.correction?.ocr,cameraEnhancement:!!options.correction?.scan,googleSignIn:!!options.auth?.google,passwordRecovery:!!options.auth?.sendReset}));
   app.use('/api',correctionRouter(db,options.correction));
   app.use('/api',preparationRouter(db,options.preparation));
   app.get('/api/assessments', async (_req, res) => { res.json(await service.list(res.locals.teacher.id)); });

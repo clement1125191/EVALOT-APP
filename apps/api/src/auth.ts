@@ -45,6 +45,8 @@ export class Authentication {
   }
   async event(db:Database,id:string,action:string){await db.query('INSERT INTO auth_events(id,teacher_id,action) VALUES($1,$2,$3)',[randomUUID(),id,action]);}
   async session(db:Database,id:string,remember:boolean,previous:string|null){
+    await db.query('SELECT id FROM teachers WHERE id=$1 FOR UPDATE',[id]);
+    const control=(await db.query('SELECT suspended FROM account_controls WHERE teacher_id=$1',[id])).rows[0];if(control?.suspended)throw new ApiError(403,'This account is unavailable. Contact the Evalot administrator.');
     if(previous)await db.query('DELETE FROM teacher_sessions WHERE token_hash=$1',[digest(previous)]);
     await db.query('DELETE FROM teacher_sessions WHERE expires_at<=now()');
     const token=randomBytes(32).toString('hex');
