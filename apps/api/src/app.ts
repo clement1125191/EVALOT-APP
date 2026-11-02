@@ -38,7 +38,12 @@ export function createApp(db: Store, teacherId: string | null = null, options: {
     res.set('Cache-Control','private, no-store');
     if(!teacherId && !['GET','HEAD','OPTIONS'].includes(req.method)){
       const reason=req.get('X-Evalot-Request')!=='1'?'missing_request_header':req.get('Origin')&&!origins.includes(req.get('Origin')!)?'origin_not_allowed':req.get('Sec-Fetch-Site')==='cross-site'?'cross_site_request':null;
-      if(reason){res.status(403).json({error:'Request origin could not be verified.',code:'REQUEST_ORIGIN_REJECTED',reason});return;}
+      if(reason){
+        let observedOrigin='not provided';try{if(req.get('Origin'))observedOrigin=new URL(req.get('Origin')!).origin;}catch{observedOrigin='opaque or invalid';}
+        const officialOrigin=options.auth?.publicUrl?new URL(options.auth.publicUrl).origin:origins[0];
+        const details={missing_request_header:'The app verification header is missing.',origin_not_allowed:'The page origin is not approved.',cross_site_request:'The browser marked this request as cross-site.'};
+        res.status(403).json({error:`${details[reason]} Received origin: ${observedOrigin}. Open ${officialOrigin} in Chrome or Safari and sign in there.`,code:'REQUEST_ORIGIN_REJECTED',reason});return;
+      }
     }
     next();
   });
