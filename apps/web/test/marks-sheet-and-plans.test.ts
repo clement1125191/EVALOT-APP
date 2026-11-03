@@ -3,7 +3,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {createElement} from 'react';
 import {MarksSheet,displayedMarks,canPublishMarks} from '../src/MarksSheet';
 import {PlansBilling} from '../src/PlansBilling';
-const student={id:'s',name:'Alice',registration:'R1',status:'REVIEWED',identityConfirmed:true,answers:[{suggestedMark:3,teacherMark:4,resolved:true}]};
+const student={revision:1,evidenceReview:{revision:1,confirmed:true},id:'s',name:'Alice',registration:'R1',status:'REVIEWED',identityConfirmed:true,answers:[{suggestedMark:3,teacherMark:4,resolved:true}]};
 const session={id:'workbook',name:'English marks',status:'OPEN',guide:{subject:'English',className:'S1',totalMarks:10,questions:[{position:1,section:'Section A',maxMarks:10}]},students:[student],claims:[]} as any;
 it('does not display missing suggested marks as zero',()=>{expect(displayedMarks({...student,status:'REVIEW',answers:[{suggestedMark:null}]} as any)).toBeNull();expect(displayedMarks(student as any)).toBe(4);});
 it('requires every answer, identity and open claim to be resolved before publication',()=>{expect(canPublishMarks(session)).toBe(true);expect(canPublishMarks({...session,students:[{...student,identityConfirmed:false}]})).toBe(false);expect(canPublishMarks({...session,claims:[{status:'OPEN'}]})).toBe(false);expect(canPublishMarks({...session,status:'PUBLISHED'})).toBe(false);});

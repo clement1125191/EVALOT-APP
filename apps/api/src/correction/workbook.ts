@@ -3,7 +3,7 @@
 const escape=(s:unknown)=>String(s??'').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const crcTable=Array.from({length:256},(_,n)=>{let c=n;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
 function crc32(b:Buffer){let c=0xffffffff;for(const v of b)c=crcTable[(c^v)&255]^(c>>>8);return (c^0xffffffff)>>>0;}
-function zip(entries:Record<string,string>):Buffer{
+export function zip(entries:Record<string,string|Buffer>):Buffer{
  const local:Buffer[]=[],central:Buffer[]=[];let offset=0;
  for(const [path,text] of Object.entries(entries)){
   const name=Buffer.from(path),bytes=Buffer.from(text),crc=crc32(bytes),header=Buffer.alloc(30);
